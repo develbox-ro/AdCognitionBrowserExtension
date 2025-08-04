@@ -42,7 +42,7 @@ const About = observer(() => {
     }
 
     const currentYear = new Date().getFullYear();
-    const copyRightText = `© 2009-${currentYear} Adguard Software Ltd.`;
+    const copyRightText = `© 2024-${currentYear} AdCognition Software Ltd.`;
 
     return (
         <>
