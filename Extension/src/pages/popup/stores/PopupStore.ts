@@ -46,8 +46,11 @@ import {
     AppStateEvent,
 } from '../state-machines/app-state-machine';
 import { asyncWrapper } from '../../filtering-log/stores/helpers';
-import { TOTAL_BLOCKED_STATS_GROUP_ID } from '../../../common/constants';
+import { MIN_UPDATE_DISPLAY_DURATION_MS, TOTAL_BLOCKED_STATS_GROUP_ID } from '../../../common/constants';
 import { UserAgent } from '../../../common/user-agent';
+import { logger } from '../../../common/logger';
+import { sleepIfNecessary } from '../../../common/sleep-utils';
+import { NotificationType, type NotificationParams } from '../../common/types';
 
 type BlockedStatsInfo = {
     tabId: number;
@@ -64,20 +67,20 @@ type CategoryBlockedStatsInfo = {
 // Do not allow property change outside of store actions
 configure({ enforceActions: 'observed' });
 
-class PopupStore {
+export class PopupStore {
     TOTAL_BLOCKED_GROUP_ID = TOTAL_BLOCKED_STATS_GROUP_ID;
 
     /**
      * Flag that indicates whether the application filtering is **paused**.
      */
     @observable
-        applicationFilteringPaused: boolean | null = null;
+    applicationFilteringPaused: boolean | null = null;
 
     /**
      * Flag that indicates whether the filtering is possible or not (e.g. secure pages).
      */
     @observable
-        isFilteringPossible = true;
+    isFilteringPossible = true;
 
     /**
      * Flag that indicates whether the filtering engine is started.
@@ -90,7 +93,7 @@ class PopupStore {
      * If set to `false`, the engine is not started and the splash screen should be displayed.
      */
     @observable
-        isEngineStarted: boolean | null = null;
+    isEngineStarted: boolean | null = null;
 
     /**
      * Flag that indicates whether the filtering on a website is disabled
@@ -98,65 +101,75 @@ class PopupStore {
      * so it cannot be undone by the user.
      */
     @observable
-        canAddRemoveRule = true;
+    canAddRemoveRule = true;
 
     @observable
-        url: string | null = null;
+    url: string | null = null;
 
     @observable
-        viewState = ViewState.Actions;
+    viewState = ViewState.Actions;
 
     @observable
-        totalBlocked = 0;
+    totalBlocked = 0;
 
     @observable
-        totalBlockedTab = 0;
+    totalBlockedTab = 0;
 
     @observable
-        documentAllowlisted: boolean | null = null;
+    documentAllowlisted: boolean | null = null;
 
     @observable
-        userAllowlisted: boolean | null = null;
+    userAllowlisted: boolean | null = null;
 
     @observable
-        showInfoAboutFullVersion = true;
+    showInfoAboutFullVersion = true;
 
     @observable
-        isEdgeBrowser = false;
+    isEdgeBrowser = false;
 
     @observable
-        isAndroidBrowser = false;
+    isAndroidBrowser = false;
 
     @observable
-        stats: GetStatisticsDataResponse | null = null;
+    stats: GetStatisticsDataResponse | null = null;
 
     @observable
-        selectedTimeRange = TimeRange.Week;
+    selectedTimeRange = TimeRange.Week;
 
     @observable
-        selectedBlockedType = this.TOTAL_BLOCKED_GROUP_ID;
+    selectedBlockedType = this.TOTAL_BLOCKED_GROUP_ID;
 
     @observable
-        promoNotification: PromoNotification | null = null;
+    promoNotification: PromoNotification | null = null;
 
     @observable
-        hasUserRulesToReset = false;
+    hasUserRulesToReset = false;
 
     @observable
-        settings: SettingsData | null = null;
+    settings: SettingsData | null = null;
 
     @observable
-        areFilterLimitsExceeded = false;
+    areFilterLimitsExceeded = false;
 
     currentTabId?: number | null = null;
 
     domainName: string | null = null;
 
     @observable
-        appState: AppState = appStateActor.getSnapshot().value;
+    appState: AppState = appStateActor.getSnapshot().value;
+
+    @observable
+    isExtensionUpdateAvailable = false;
+
+    @observable
+    isExtensionUpdating = false;
+
+    @observable
+    updateNotification: NotificationParams | null = null;
 
     constructor() {
         makeObservable(this);
+        this.checkUpdatesMV3 = this.checkUpdatesMV3.bind(this);
 
         appStateActor.subscribe((state) => {
             runInAction(() => {
@@ -180,7 +193,7 @@ class PopupStore {
     /**
      * Sets the initial state of the app state machine actor based on the current popup data.
      */
-    setActorInitState = () => {
+    setAppActorInitState = () => {
         if (this.applicationFilteringPaused) {
             appStateActor.send({ type: AppStateEvent.Pause });
         } else if (this.documentAllowlisted) {
@@ -235,7 +248,7 @@ class PopupStore {
                 options,
                 stats,
                 settings,
-                areFilterLimitsExceeded,
+                mv3SpecificOptions,
             } = response;
 
             // frame info
@@ -261,11 +274,49 @@ class PopupStore {
             // settings
             this.settings = settings;
 
-            this.areFilterLimitsExceeded = areFilterLimitsExceeded;
-
             this.currentTabId = currentTab.id;
 
-            this.setActorInitState();
+            this.setAppActorInitState();
+
+            // Handle MV3-specific options
+            if (!mv3SpecificOptions) {
+                // Early exit for MV2 or when mv3SpecificOptions is absent
+                this.areFilterLimitsExceeded = false;
+                this.setIsExtensionUpdateAvailable(false);
+                return;
+            }
+
+            const {
+                areFilterLimitsExceeded,
+                isExtensionUpdateAvailable,
+                isExtensionReloadedOnUpdate,
+                isSuccessfulExtensionUpdate,
+            } = mv3SpecificOptions;
+
+            this.areFilterLimitsExceeded = areFilterLimitsExceeded;
+            this.setIsExtensionUpdateAvailable(isExtensionUpdateAvailable);
+
+            // notification about successful or failed update should be shown after the popup is opened.
+            // and it cannot be done by notifier (from the background page)
+            // because event may be dispatched _before_ the popup is opened,
+            // i.e. listener may not be registered yet.
+            if (isExtensionReloadedOnUpdate) {
+                if (isSuccessfulExtensionUpdate) {
+                    this.setUpdateNotification({
+                        type: NotificationType.Success,
+                        text: translator.getMessage('update_success_text'),
+                    });
+                } else {
+                    this.setUpdateNotification({
+                        type: NotificationType.Error,
+                        text: translator.getMessage('update_failed_text'),
+                        button: {
+                            title: translator.getMessage('update_failed_try_again_btn'),
+                            onClick: this.checkUpdatesMV3,
+                        },
+                    });
+                }
+            }
         });
     };
 
@@ -575,6 +626,46 @@ class PopupStore {
         }
 
         return this.settings.values[this.settings.names.AppearanceTheme];
+    }
+
+    /**
+     * Checks for updates and if update is available, starts the update process.
+     *
+     * Note:
+     * This behavior is different on options page
+     * where two separate clicks are required
+     * to check for updates and start the update process.
+     */
+    @action
+    async checkUpdatesMV3() {
+        const start = Date.now();
+        this.setIsExtensionUpdating(true);
+
+        try {
+            this.setUpdateNotification(null);
+            await messenger.checkUpdatesFromPopupMV3();
+        } catch (error: unknown) {
+            logger.debug('[ext.PopupStore.checkUpdatesMV3]: failed to check updates in popup: ', error);
+        }
+
+        // Ensure minimum duration for smooth UI experience
+        await sleepIfNecessary(start, MIN_UPDATE_DISPLAY_DURATION_MS);
+        this.setIsExtensionUpdating(false);
+    }
+
+    @action
+    setIsExtensionUpdateAvailable(isUpdateAvailable: boolean): void {
+        this.isExtensionUpdateAvailable = isUpdateAvailable;
+    }
+
+    @action
+    setIsExtensionUpdating(isUpdating: boolean): void {
+        this.isExtensionUpdating = isUpdating;
+    }
+
+    @action
+    setUpdateNotification(notification: NotificationParams | null): void {
+        this.updateNotification = notification;
     }
 }
 

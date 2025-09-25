@@ -24,14 +24,23 @@ import {
     runInAction,
 } from 'mobx';
 
+import {
+    AntibannerGroupsId,
+    MIN_UPDATE_DISPLAY_DURATION_MS,
+    RECOMMENDED_TAG_ID,
+    TRUSTED_TAG_KEYWORD,
+    WASTE_CHARACTERS,
+} from '../../../common/constants';
 import { logger } from '../../../common/logger';
+import { sleepIfNecessary, sleep } from '../../../common/sleep-utils';
+import { translator } from '../../../common/translators/translator';
+import { UserAgent } from '../../../common/user-agent';
 import {
     createSavingService,
     SavingFSMEvent,
     SavingFSMState,
 } from '../../common/components/Editor/savingFSM';
-import { MIN_FILTERS_UPDATE_DISPLAY_DURATION_MS } from '../../common/constants';
-import { sleep } from '../../../../../tools/common/sleep';
+import { NotificationType } from '../../common/types';
 import { messenger } from '../../services/messenger';
 import { SEARCH_FILTERS } from '../components/Filters/Search/constants';
 import {
@@ -41,16 +50,6 @@ import {
     sortGroupsOnSearch,
 } from '../components/Filters/helpers';
 import { optionsStorage } from '../options-storage';
-import {
-    AntibannerGroupsId,
-    RECOMMENDED_TAG_ID,
-    TRUSTED_TAG_KEYWORD,
-    WASTE_CHARACTERS,
-} from '../../../common/constants';
-import { translator } from '../../../common/translators/translator';
-import { UserAgent } from '../../../common/user-agent';
-
-import { NotificationType } from './UiStore';
 
 /**
  * Sometimes the options page might be opened before the background page or
@@ -153,6 +152,7 @@ class SettingsStore {
                 const end = Date.now();
                 const timePassed = end - start;
                 if (timePassed < MIN_EXECUTION_TIME_REQUIRED_MS) {
+                    // TODO: consider using sleepIfNecessary
                     await sleep(MIN_EXECUTION_TIME_REQUIRED_MS - timePassed);
                 }
 
@@ -161,68 +161,109 @@ class SettingsStore {
         },
     });
 
-    @observable settings = null;
+    @observable
+    settings = null;
 
-    @observable optionsReadyToRender = false;
+    @observable
+    optionsReadyToRender = false;
 
-    @observable version = null;
+    @observable
+    version = null;
 
-    @observable libVersions = null;
+    @observable
+    libVersions = null;
 
-    @observable filters = [];
+    @observable
+    filters = [];
 
-    @observable categories = [];
+    @observable
+    categories = [];
 
-    @observable visibleFilters = [];
+    @observable
+    visibleFilters = [];
 
-    @observable rulesCount = 0;
+    @observable
+    rulesCount = 0;
 
-    @observable allowAcceptableAds = null;
+    @observable
+    allowAcceptableAds = null;
 
-    @observable blockKnownTrackers = null;
+    @observable
+    blockKnownTrackers = null;
 
-    @observable stripTrackingParameters = null;
+    @observable
+    stripTrackingParameters = null;
 
-    @observable allowlist = '';
+    @observable
+    allowlist = '';
 
-    @observable savingAllowlistState = this.savingAllowlistService.getSnapshot().value;
+    @observable
+    savingAllowlistState = this.savingAllowlistService.getSnapshot().value;
 
-    @observable filtersUpdating = false;
+    @observable
+    filtersUpdating = false;
 
-    @observable selectedGroupId = null;
+    /**
+     * Whether the extension update is available after the checking.
+     */
+    @observable
+    isExtensionUpdateAvailable = false;
 
-    @observable isChrome = null;
+    /**
+     * Whether the extension update is checking.
+     */
+    @observable
+    isCheckingExtensionUpdate = false;
 
-    @observable currentChromeVersion = UserAgent.isChromium ? Number(UserAgent.version) : null;
+    @observable
+    selectedGroupId = null;
 
-    @observable searchInput = '';
+    @observable
+    isChrome = null;
 
-    @observable searchSelect = SEARCH_FILTERS.ALL;
+    @observable
+    currentChromeVersion = UserAgent.isChromium ? Number(UserAgent.version) : null;
 
-    @observable allowlistEditorContentChanged = false;
+    @observable
+    searchInput = '';
 
-    @observable allowlistEditorWrap = null;
+    @observable
+    searchSelect = SEARCH_FILTERS.ALL;
 
-    @observable fullscreenUserRulesEditorIsOpen = false;
+    @observable
+    allowlistEditorContentChanged = false;
 
-    @observable allowlistSizeReset = false;
+    @observable
+    allowlistEditorWrap = null;
 
-    @observable filtersToGetConsentFor = [];
+    @observable
+    fullscreenUserRulesEditorIsOpen = false;
 
-    @observable isAnnoyancesConsentModalOpen = false;
+    @observable
+    allowlistSizeReset = false;
 
-    @observable filterIdSelectedForConsent = null;
+    @observable
+    filtersToGetConsentFor = [];
 
-    @observable rulesLimits = DEFAULT_RULES_LIMITS;
+    @observable
+    isAnnoyancesConsentModalOpen = false;
+
+    @observable
+    filterIdSelectedForConsent = null;
+
+    @observable
+    rulesLimits = DEFAULT_RULES_LIMITS;
 
     constructor(rootStore) {
         makeObservable(this);
         this.rootStore = rootStore;
+        this.uiStore = rootStore.uiStore;
 
         this.updateSetting = this.updateSetting.bind(this);
         this.updateFilterSetting = this.updateFilterSetting.bind(this);
         this.updateGroupSetting = this.updateGroupSetting.bind(this);
         this.setAllowAcceptableAdsState = this.setAllowAcceptableAdsState.bind(this);
+        this.checkUpdatesMV3 = this.checkUpdatesMV3.bind(this);
 
         this.savingAllowlistService.subscribe((state) => {
             runInAction(() => {
@@ -258,19 +299,11 @@ class SettingsStore {
     async checkLimitations() {
         const currentLimitsMv3 = await messenger.getCurrentLimits();
 
-        const uiStore = this.rootStore.uiStore;
+        this.uiStore.setStaticFiltersLimitsWarning(currentLimitsMv3.staticFiltersData);
+        this.uiStore.setDynamicRulesLimitsWarning(currentLimitsMv3.dynamicRulesData);
 
-        uiStore.setStaticFiltersLimitsWarning(currentLimitsMv3.staticFiltersData);
-        uiStore.setDynamicRulesLimitsWarning(currentLimitsMv3.dynamicRulesData);
-
-        if (uiStore.dynamicRulesLimitsWarning) {
-            uiStore.addNotification({
-                description: uiStore.dynamicRulesLimitsWarning,
-                extra: {
-                    link: translator.getMessage('options_rule_limits'),
-                },
-                type: NotificationType.ERROR,
-            });
+        if (this.uiStore.dynamicRulesLimitsWarning) {
+            this.uiStore.addRuleLimitsNotification(this.uiStore.dynamicRulesLimitsWarning);
         }
 
         return currentLimitsMv3;
@@ -328,6 +361,45 @@ class SettingsStore {
             this.isChrome = data.environmentOptions.isChrome;
             this.optionsReadyToRender = true;
             this.fullscreenUserRulesEditorIsOpen = data.fullscreenUserRulesEditorIsOpen;
+
+            // Handle MV3-specific options
+            const { mv3SpecificOptions } = data;
+
+            if (!mv3SpecificOptions) {
+                // Early exit for MV2 or when mv3SpecificOptions is absent
+                this.setIsExtensionUpdateAvailable(false);
+                return;
+            }
+
+            const {
+                isExtensionUpdateAvailable,
+                isExtensionReloadedOnUpdate,
+                isSuccessfulExtensionUpdate,
+            } = mv3SpecificOptions;
+
+            this.setIsExtensionUpdateAvailable(isExtensionUpdateAvailable);
+
+            // notification about successful or failed update should be shown after the options page is opened.
+            // and it cannot be done by notifier (from the background page)
+            // because event may be dispatched before the options page is opened,
+            // i.e. listener may not be registered yet.
+            if (isExtensionReloadedOnUpdate) {
+                if (isSuccessfulExtensionUpdate) {
+                    this.uiStore.addNotification({
+                        type: NotificationType.Success,
+                        text: translator.getMessage('update_success_text'),
+                    });
+                } else {
+                    this.uiStore.addNotification({
+                        type: NotificationType.Error,
+                        text: translator.getMessage('update_failed_text'),
+                        button: {
+                            title: translator.getMessage('update_failed_try_again_btn'),
+                            onClick: this.checkUpdatesMV3,
+                        },
+                    });
+                }
+            }
         });
 
         return data;
@@ -664,22 +736,59 @@ class SettingsStore {
     }
 
     @action
-    async updateFilters() {
+    async updateFiltersMV2() {
         this.setFiltersUpdating(true);
         try {
-            // In MV3 we do not support checking update for filters.
-            const filtersUpdates = __IS_MV3__
-                ? []
-                : await messenger.updateFilters();
+            const filtersUpdates = await messenger.updateFiltersMV2();
             this.refreshFilters(filtersUpdates);
             setTimeout(() => {
                 this.setFiltersUpdating(false);
-            }, MIN_FILTERS_UPDATE_DISPLAY_DURATION_MS);
+            }, MIN_UPDATE_DISPLAY_DURATION_MS);
             return filtersUpdates;
         } catch (error) {
             this.setFiltersUpdating(false);
             throw error;
         }
+    }
+
+    @action
+    async checkUpdatesMV3() {
+        const start = Date.now();
+        this.setIsCheckingExtensionUpdate(true);
+        let isAvailable = false;
+
+        try {
+            isAvailable = await messenger.checkUpdatesFromOptionsMV3();
+        } catch (error) {
+            logger.debug('[ext.SettingsStore.checkUpdatesMV3]: failed to check updates on options page: ', error);
+        }
+
+        // Ensure minimum duration for smooth UI experience
+        await sleepIfNecessary(start, MIN_UPDATE_DISPLAY_DURATION_MS);
+        this.setIsCheckingExtensionUpdate(false);
+        this.setIsExtensionUpdateAvailable(isAvailable);
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    async updateExtensionMV3() {
+        const start = Date.now();
+        try {
+            await messenger.updateExtensionFromOptionsMV3();
+        } catch (error) {
+            logger.debug('[ext.SettingsStore.updateExtensionMV3]: failed to update extension on options page: ', error);
+        }
+        // Ensure minimum duration for smooth UI experience before extension reload
+        await sleepIfNecessary(start, MIN_UPDATE_DISPLAY_DURATION_MS);
+    }
+
+    @action
+    setIsExtensionUpdateAvailable(isAvailable) {
+        this.isExtensionUpdateAvailable = isAvailable;
+    }
+
+    @action
+    setIsCheckingExtensionUpdate(isChecking) {
+        this.isCheckingExtensionUpdate = isChecking;
     }
 
     /**

@@ -28,7 +28,6 @@ import webpack, { type Configuration, type EntryObject } from 'webpack';
 
 import {
     BUILD_PATH,
-    BuildTargetEnv,
     Browser,
     BUILD_ENV,
 } from '../constants';
@@ -60,6 +59,7 @@ import {
     MIN_SUPPORTED_VERSION,
     INDEX_HTML_FILE_NAME,
     SUBSCRIBE_OUTPUT,
+    BuildTargetEnv,
 } from '../../constants';
 
 import {
@@ -305,6 +305,10 @@ export const genCommonConfig = (browserConfig: BrowserConfig, isWatchMode = fals
                     // eslint-disable-next-line max-len
                     `../../Extension/src/background/services/custom-filters/custom-filters-service-mv${manifestVersion}.ts`,
                 ),
+                'extension-update-service': path.resolve(
+                    __dirname,
+                    `../../Extension/src/background/services/extension-update/extension-update-service-mv${manifestVersion}.ts`,
+                ),
                 'rules-limits-service': path.resolve(
                     __dirname,
                     `../../Extension/src/background/services/rules-limits/rules-limits-service-mv${manifestVersion}.ts`,
@@ -312,6 +316,34 @@ export const genCommonConfig = (browserConfig: BrowserConfig, isWatchMode = fals
                 'content-script': path.resolve(
                     __dirname,
                     `../../Extension/pages/content-script-start/mv${manifestVersion}.ts`,
+                ),
+                'network-api': path.resolve(
+                    __dirname,
+                    `../../Extension/src/background/api/network/network-mv${manifestVersion}.ts`,
+                ),
+                'network-api-settings': path.resolve(
+                    __dirname,
+                    `../../Extension/src/background/api/network/settings-mv${manifestVersion}.ts`,
+                ),
+                'filters-update-api': path.resolve(
+                    __dirname,
+                    `../../Extension/src/background/api/filters/update/update-mv${manifestVersion}.ts`,
+                ),
+                'common-filter-api': path.resolve(
+                    __dirname,
+                    `../../Extension/src/background/api/filters/common/common-mv${manifestVersion}.ts`,
+                ),
+                'filter-categories-api': path.resolve(
+                    __dirname,
+                    `../../Extension/src/background/api/filters/categories/categories-mv${manifestVersion}.ts`,
+                ),
+                'settings-api': path.resolve(
+                    __dirname,
+                    `../../Extension/src/background/api/settings/settings-mv${manifestVersion}.ts`,
+                ),
+                'filter-update-service': path.resolve(
+                    __dirname,
+                    `../../Extension/src/background/services/filter-update/filter-update-mv${manifestVersion}.ts`,
                 ),
             },
         },

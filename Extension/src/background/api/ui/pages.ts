@@ -62,6 +62,8 @@ import { FilterUpdateService } from '../../services/filter-update';
 import { CustomFilterUtils } from '../../../common/custom-filter-utils';
 import { isUserScriptsApiSupported } from '../../../common/user-scripts-api';
 
+import { browserAction } from './browser-action';
+
 // TODO: We can manipulates tabs directly from content-script and other extension pages context.
 // So this API can be shared and used for data flow simplifying (direct calls instead of message passing)
 /**
@@ -496,17 +498,63 @@ export class PagesApi {
     }
 
     /**
+     * Opens settings page with specified query.
+     * If the page has been already opened, focus on it.
+     *
+     * @param query Query string to open on settings page.
+     */
+    private static async openSettingsPageWithQuery(query: string): Promise<void> {
+        const path = PagesApi.getExtensionPageUrl(OPTIONS_OUTPUT, query);
+
+        const tab = await PagesApi.openTabOnSettingsPage(path);
+
+        await TabsApi.focus(tab);
+    }
+
+    /**
+     * Opens filters section on settings page.
+     * If the page has been already opened, focus on it.
+     */
+    public static async openFiltersOnSettingsPage(): Promise<void> {
+        const queryPart = `#${OptionsPageSections.filters}`;
+
+        await PagesApi.openSettingsPageWithQuery(queryPart);
+    }
+
+    /**
      * Opens rules limits section on settings page.
      * If the page has been already opened, focus on it.
      */
     public static async openRulesLimitsPage(): Promise<void> {
         const queryPart = `#${OptionsPageSections.ruleLimits}`;
 
-        const path = PagesApi.getExtensionPageUrl(OPTIONS_OUTPUT, queryPart);
+        await PagesApi.openSettingsPageWithQuery(queryPart);
+    }
 
-        const tab = await PagesApi.openTabOnSettingsPage(path);
+    /**
+     * Opens the extension popup in the last focused _normal_ window.
+     */
+    public static async openExtensionPopup(): Promise<void> {
+        // opening popup in the window with no toolbar throws an error. AG-46535
+        const { id: lastFocusedWindowId } = await chrome.windows.getLastFocused({
+            windowTypes: ['normal'],
+        });
 
-        await TabsApi.focus(tab);
+        if (!lastFocusedWindowId) {
+            logger.warn('[ext.PagesApi.openExtensionPopup]: No normal window found to open popup');
+            return;
+        }
+
+        // Ensure the window is focused before opening the popup
+        await chrome.windows.update(lastFocusedWindowId, { focused: true });
+
+        try {
+            await browserAction.openPopup({
+                windowId: lastFocusedWindowId,
+            });
+        } catch (e) {
+            logger.error('[ext.PagesApi.openExtensionPopup]: Failed to open popup', e);
+        }
     }
 
     /**
