@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -45,6 +47,9 @@ import { type FilterMetadata } from '../../background/api/filters/main';
 import { type GetAllowlistDomainsResponse } from '../../background/services/allowlist';
 import { type GetUserRulesEditorDataResponse, type GetUserRulesResponse } from '../../background/services/userrules';
 import { type GetCustomFilterInfoResult } from '../../background/api/filters/custom';
+import { type ManualUpdateMetadata } from '../../background/services/extension-update/types';
+import { type TelemetryEventName, type TelemetryScreenName } from '../../background/services/telemetry';
+import { type TelemetryActionToScreenMap } from '../../background/services/telemetry/enums';
 
 export const APP_MESSAGE_HANDLER_NAME = 'app';
 
@@ -72,16 +77,14 @@ export enum MessageType {
     GetAllowlistDomains = 'getAllowlistDomains',
     SaveAllowlistDomains = 'saveAllowlistDomains',
     CheckFiltersUpdate = 'checkFiltersUpdate',
-    CheckExtensionUpdateFromPopup = 'checkExtensionUpdateFromPopup',
-    CheckExtensionUpdateFromOptions = 'checkExtensionUpdateFromOptions',
-    UpdateExtensionFromPopup = 'updateExtensionFromPopup',
-    UpdateExtensionFromOptions = 'updateExtensionFromOptions',
+    CheckExtensionUpdateMv3 = 'checkExtensionUpdateMv3',
+    UpdateExtensionMv3 = 'updateExtensionMv3',
     DisableFiltersGroup = 'disableFiltersGroup',
     DisableFilter = 'disableFilter',
     LoadCustomFilterInfo = 'loadCustomFilterInfo',
     SubscribeToCustomFilter = 'subscribeToCustomFilter',
     RemoveAntiBannerFilter = 'removeAntiBannerFilter',
-    GetIsEngineStarted = 'getIsEngineStarted',
+    GetIsAppInitialized = 'getIsAppInitialized',
     GetTabInfoForPopup = 'getTabInfoForPopup',
     ChangeApplicationFilteringPaused = 'changeApplicationFilteringPaused',
     OpenRulesLimitsTab = 'openRulesLimitsTab',
@@ -140,6 +143,10 @@ export enum MessageType {
     UpdateListeners = 'updateListeners',
     SetConsentedFilters = 'setConsentedFilters',
     GetIsConsentedFilter = 'getIsConsentedFilter',
+    SendTelemetryCustomEvent = 'sendTelemetryCustomEvent',
+    SendTelemetryPageViewEvent = 'sendTelemetryPageViewEvent',
+    AddTelemetryOpenedPage = 'addTelemetryOpenedPage',
+    RemoveTelemetryOpenedPage = 'removeTelemetryOpenedPage',
     GetRulesLimitsCountersMv3 = 'getRulesLimitsCountersMv3',
     CanEnableStaticFilterMv3 = 'canEnableStaticFilterMv3',
     CanEnableStaticGroupMv3 = 'canEnableStaticGroupMv3',
@@ -184,8 +191,8 @@ export type RemoveListenerMessage = {
     };
 };
 
-export type GetIsEngineStartedMessage = {
-    type: MessageType.GetIsEngineStarted;
+export type GetIsAppInitializedMessage = {
+    type: MessageType.GetIsAppInitialized;
 };
 
 export type GetTabInfoForPopupMessage = {
@@ -241,20 +248,15 @@ export type CheckFiltersUpdateMessage = {
     type: MessageType.CheckFiltersUpdate;
 };
 
-export type CheckExtensionUpdateMessage = {
-    type: MessageType.CheckExtensionUpdateFromPopup;
+export type CheckExtensionUpdateMessageMv3 = {
+    type: MessageType.CheckExtensionUpdateMv3;
 };
 
-export type CheckExtensionUpdateFromOptionsMessage = {
-    type: MessageType.CheckExtensionUpdateFromOptions;
-};
-
-export type UpdateExtensionMessage = {
-    type: MessageType.UpdateExtensionFromOptions;
-};
-
-export type UpdateExtensionFromPopupMessage = {
-    type: MessageType.UpdateExtensionFromPopup;
+export type UpdateExtensionMessageMv3 = {
+    type: MessageType.UpdateExtensionMv3;
+    data: {
+        from: ManualUpdateMetadata['pageToOpenAfterReload'];
+    };
 };
 
 export type GetAllowlistDomainsMessage = {
@@ -616,6 +618,33 @@ export type ShowVersionUpdatedPopupMessage = {
     };
 };
 
+export type SendTelemetryPageViewEventMessage = {
+    type: MessageType.SendTelemetryPageViewEvent;
+    data: {
+        screenName: TelemetryScreenName;
+        pageId: string;
+    };
+};
+
+export type SendTelemetryCustomEventMessage = {
+    type: MessageType.SendTelemetryCustomEvent;
+    data: {
+        screenName: TelemetryActionToScreenMap[TelemetryEventName];
+        eventName: TelemetryEventName;
+    };
+};
+
+export type AddTelemetryOpenedPageMessage = {
+    type: MessageType.AddTelemetryOpenedPage;
+};
+
+export type RemoveTelemetryOpenedPageMessage = {
+    type: MessageType.RemoveTelemetryOpenedPage;
+    data: {
+        pageId: string;
+    };
+};
+
 export type CanEnableStaticFilterMv3Message = {
     type: MessageType.CanEnableStaticFilterMv3;
     data: {
@@ -668,8 +697,8 @@ export type MessageMap = {
         message: AddFilteringSubscriptionMessage;
         response: void;
     };
-    [MessageType.GetIsEngineStarted]: {
-        message: GetIsEngineStartedMessage;
+    [MessageType.GetIsAppInitialized]: {
+        message: GetIsAppInitializedMessage;
         response: boolean;
     };
     [MessageType.GetTabInfoForPopup]: {
@@ -704,20 +733,12 @@ export type MessageMap = {
         message: CheckFiltersUpdateMessage;
         response: FilterMetadata[] | undefined;
     };
-    [MessageType.CheckExtensionUpdateFromPopup]: {
-        message: CheckExtensionUpdateMessage;
+    [MessageType.CheckExtensionUpdateMv3]: {
+        message: CheckExtensionUpdateMessageMv3;
         response: void;
     };
-    [MessageType.CheckExtensionUpdateFromOptions]: {
-        message: CheckExtensionUpdateFromOptionsMessage;
-        response: boolean;
-    };
-    [MessageType.UpdateExtensionFromOptions]: {
-        message: UpdateExtensionMessage;
-        response: void;
-    };
-    [MessageType.UpdateExtensionFromPopup]: {
-        message: UpdateExtensionFromPopupMessage;
+    [MessageType.UpdateExtensionMv3]: {
+        message: UpdateExtensionMessageMv3;
         response: void;
     };
     [MessageType.GetAllowlistDomains]: {
@@ -946,6 +967,22 @@ export type MessageMap = {
     };
     [MessageType.AddUrlToTrusted]: {
         message: AddUrlToTrustedMessage;
+        response: void;
+    };
+    [MessageType.SendTelemetryPageViewEvent]: {
+        message: SendTelemetryPageViewEventMessage;
+        response: void;
+    };
+    [MessageType.SendTelemetryCustomEvent]: {
+        message: SendTelemetryCustomEventMessage;
+        response: void;
+    };
+    [MessageType.AddTelemetryOpenedPage]: {
+        message: AddTelemetryOpenedPageMessage;
+        response: string;
+    };
+    [MessageType.RemoveTelemetryOpenedPage]: {
+        message: RemoveTelemetryOpenedPageMessage;
         response: void;
     };
     [MessageType.CurrentLimitsMv3]: {

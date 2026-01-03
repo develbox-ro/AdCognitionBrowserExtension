@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -51,6 +53,7 @@ import {
     PageStatsApi,
     UiApi,
     HitStatsApi,
+    iconsApi,
 } from '../api';
 import {
     UiService,
@@ -66,6 +69,7 @@ import {
     localeDetect,
     PromoNotificationService,
     filterUpdateService,
+    Telemetry,
 } from '../services';
 import { SettingOption } from '../schema';
 import { getRunInfo } from '../utils';
@@ -246,7 +250,7 @@ export class App {
          */
         eventService.init();
 
-        ExtensionUpdateService.init();
+        await ExtensionUpdateService.init();
 
         /**
          * Called after eventService init, otherwise it won't handle messages.
@@ -291,6 +295,9 @@ export class App {
 
         appContext.set(AppContextKey.IsInit, true);
 
+        // Update icons to hide "loading" icon
+        await iconsApi.update();
+
         await sendMessage({ type: MessageType.AppInitialized });
 
         // In MV3 we need filters update service to update quick fixes filter,
@@ -305,6 +312,8 @@ export class App {
         // so the event should be dispatched eventually after all initialization
         // is done.
         dispatchEvent(new Event(EXTENSION_INITIALIZED_EVENT));
+
+        await Telemetry.init();
     }
 
     /**

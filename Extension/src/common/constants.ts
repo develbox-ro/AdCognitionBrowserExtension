@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -18,6 +20,8 @@
 
 import { type PreprocessedFilterList } from '@adguard/tswebextension';
 
+import { type ForwardFrom } from './forward';
+
 /**
  * Current version of app storage data schema.
  *
@@ -25,7 +29,7 @@ import { type PreprocessedFilterList } from '@adguard/tswebextension';
  *
  * Note: Do not to be confused with the protocol version of the imported config.
  */
-export const APP_SCHEMA_VERSION = 12;
+export const APP_SCHEMA_VERSION = 13;
 
 export const CLIENT_ID_KEY = 'client-id';
 export const APP_VERSION_KEY = 'app-version';
@@ -42,6 +46,24 @@ export const HIT_STATISTIC_KEY = 'filters-hit-count';
 export const ANNOYANCES_CONSENT_KEY = 'annoyances-consent';
 export const RULES_LIMITS_KEY = 'rules-limits';
 export const MANUAL_EXTENSION_UPDATE_KEY = 'manual-extension-update';
+/**
+ * Storage key to prevent double injection of content scripts after extension update.
+ * Set before extension reload, checked and cleared after reload.
+ */
+export const CONTENT_SCRIPT_INJECTION_FLAG = 'content-script-injection-flag';
+/**
+ * Storage key for auto-update state data, used only in MV3.
+ */
+export const AUTO_UPDATE_STATE_KEY_MV3 = 'auto-update-state-mv3';
+/**
+ * Storage key for auto-update configuration override, used only in MV3 for testing.
+ */
+export const AUTO_UPDATE_CONFIG_KEY_MV3 = 'auto-update-config-mv3';
+
+/**
+ * Storage key for telemetry synthetic ID.
+ */
+export const TELEMETRY_SYNTHETIC_ID_KEY = 'telemetry-synthetic-id';
 
 /**
  * Filter ids used in the code on the background page and filtering log page.
@@ -250,10 +272,7 @@ export const USER_SCRIPTS_API_WARNING_RECHECK_DELAY_MS = 2000;
 /**
  * Enum with the list of the pages where manual extension update can be triggered.
  */
-export enum ManualExtensionUpdatePage {
-    Options = 'options',
-    Popup = 'popup',
-}
+export type ManualExtensionUpdatePage = ForwardFrom.Popup | ForwardFrom.Options;
 
 /**
  * States for the extension update finite state machine (FSM).

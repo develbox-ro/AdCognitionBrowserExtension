@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -34,6 +36,11 @@ declare global {
              * Used to trigger autoUpdate function for tests.
              */
             autoUpdate: (forceUpdate?: boolean) => Promise<FilterMetadata[]>;
+
+            /**
+             * Used to mock update check in CWS for tests for MV3.
+             */
+            mockMv3UpdateCheckInCws: boolean | undefined;
         };
     }
 }

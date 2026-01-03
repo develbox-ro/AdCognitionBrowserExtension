@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -32,6 +34,9 @@ export class Prefs {
 
     public static baseUrl = browser.runtime.getURL('');
 
+    /**
+     * Version of application, taken from manifest.json, e.g. "7.8.5".
+     */
     public static version = browser.runtime.getManifest().version;
 
     public static language = browser.i18n.getUILanguage();
@@ -41,8 +46,8 @@ export class Prefs {
         tsurlfilter: TSURLFILTER_VERSION,
         scriptlets: SCRIPTLETS_VERSION,
         extendedCss: EXTENDED_CSS_VERSION,
-        // DNR Ruleset version will be set later
-        // when the metadata is loaded (only for MV3).
+        // DNR Ruleset version will be set later during execution
+        // when the metadata for rules is loaded (only for MV3).
         dnrRulesets: undefined,
     };
 }

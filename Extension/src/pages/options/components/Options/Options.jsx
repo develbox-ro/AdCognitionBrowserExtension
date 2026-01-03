@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -99,23 +101,60 @@ const OptionsLayout = observer(() => {
 });
 
 const Options = observer(() => {
-    const { settingsStore, uiStore } = useContext(rootStore);
+    const { settingsStore, uiStore, telemetryStore } = useContext(rootStore);
+    const pageIdRef = useRef(null);
 
     useAppearanceTheme(settingsStore.appearanceTheme);
 
     useEffect(() => {
-        let removeListenerCallback = () => {};
+        (async () => {
+            const pageId = await messenger.addTelemetryOpenedPage();
+            pageIdRef.current = pageId;
+            telemetryStore.setPageId(pageId);
+        })();
+
+        const onUnload = () => {
+            if (pageIdRef.current) {
+                telemetryStore.setPageId(null);
+                messenger.removeTelemetryOpenedPage(pageIdRef.current);
+                pageIdRef.current = null;
+            }
+        };
+
+        window.addEventListener('beforeunload', onUnload);
+
+        return () => {
+            window.removeEventListener('beforeunload', onUnload);
+            onUnload();
+        };
+    }, [telemetryStore]);
+
+    useEffect(() => {
+        let removeListenerCallback = () => { };
 
         const handleExtensionUpdateStateChange = (state) => {
             switch (state) {
+                case ExtensionUpdateFSMState.Checking:
+                    settingsStore.setIsExtensionCheckingUpdateOrUpdating(true);
+                    break;
                 case ExtensionUpdateFSMState.NotAvailable: {
+                    settingsStore.setIsExtensionCheckingUpdateOrUpdating(false);
                     uiStore.addNotification({
                         type: NotificationType.Success,
                         text: translator.getMessage('update_not_needed'),
                     });
                     break;
                 }
+                case ExtensionUpdateFSMState.Available: {
+                    settingsStore.setIsExtensionCheckingUpdateOrUpdating(false);
+                    settingsStore.setIsExtensionUpdateAvailable(true);
+                    break;
+                }
+                case ExtensionUpdateFSMState.Updating:
+                    settingsStore.setIsExtensionCheckingUpdateOrUpdating(true);
+                    break;
                 case ExtensionUpdateFSMState.Failed: {
+                    settingsStore.setIsExtensionCheckingUpdateOrUpdating(false);
                     settingsStore.setIsExtensionUpdateAvailable(false);
                     uiStore.addNotification({
                         type: NotificationType.Error,

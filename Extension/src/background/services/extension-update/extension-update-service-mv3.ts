@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -16,408 +18,242 @@
  * along with AdGuard Browser Extension. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ExtensionsIds } from '../../../../../constants';
-import {
-    ExtensionUpdateFSMEvent,
-    ExtensionUpdateFSMState,
-    MANUAL_EXTENSION_UPDATE_KEY,
-    ManualExtensionUpdatePage,
-    MIN_UPDATE_DISPLAY_DURATION_MS,
-} from '../../../common/constants';
+import { ExtensionUpdateFSMEvent, ExtensionUpdateFSMState } from '../../../common/constants';
 import { logger } from '../../../common/logger';
-import { MessageType } from '../../../common/messages';
-import { sleepIfNecessary } from '../../../common/sleep-utils';
-import { getCrxUrl } from '../../../common/update-mv3';
-import { PagesApi } from '../../api';
+import { MessageType } from '../../../common/messages/constants';
 import { messageHandler } from '../../message-handler';
-import { Prefs } from '../../prefs';
-import { browserStorage } from '../../storages';
-import { getRunInfo } from '../../utils/run-info';
-import { Version } from '../../utils/version';
-import { createPromiseWithTimeout } from '../../utils/timeouts';
 
-import { ManualExtensionUpdateDataValidator, type ManualExtensionUpdateData } from './types';
+import { type ManualUpdateMetadata, AutoUpdateStateField } from './types';
 import { extensionUpdateActor } from './extension-update-machine';
+import { AutoUpdateStateManager } from './auto-update-state-manager';
+import { AutoUpdateHandler } from './auto-update-handler';
+import { ManualUpdateHandler } from './manual-update-handler';
 
 /**
- * Max time to wait for chrome.runtime.requestUpdateCheck() before giving up.
- */
-const UPDATE_CHECK_TIMEOUT_MS = 15 * 1000; // 15 seconds
-
-/**
- * Service for checking and updating the extension.
+ * Service for checking and updating the extension in Manifest V3.
  *
- * Needed for MV3.
+ * ## Update flow:
+ *
+ * ### Automatic update (Chrome native):
+ * 1. Chrome detects update and downloads it in background.
+ * 2. `chrome.runtime.onUpdateAvailable` event fires → state becomes `Available`.
+ * 3. Extension reloads automatically after `IDLE_THRESHOLD_MS` of inactivity,
+ *    or shows update icon after `ICON_DELAY_MS` and waits for user action.
+ * 4. After reload, shows success/failure notification.
+ *
+ * **Note**: Custom filters are NOT updated in automatic flow, only if user
+ * clicks "Update" button.
+ *
+ * ### Manual update (user-initiated):
+ * 1. User clicks "Check for updates" → checks CWS via HEAD request.
+ * 2. If update exists, calls `chrome.runtime.requestUpdateCheck()`.
+ * 3. Chrome downloads update → `onUpdateAvailable` fires → state becomes `Available`.
+ * 4. User clicks "Update" button → custom filters are updated → extension reloads.
+ * 5. After reload, shows success/failure notification.
+ *
+ * ## State machine states:
+ * - `Idle` - default state, no update activity.
+ * - `Checking` - checking for updates in progress.
+ * - `NotAvailable` - no update found (transitions to Idle after 2s).
+ * - `Available` - update downloaded and ready to install.
+ * - `Updating` - extension reload in progress.
+ * - `Failed` - update failed (stays until user retries).
+ * - `Success` - update completed successfully (transitions to Idle after 2s).
+ *
+ * ## Important Notes.
+ * - The `onUpdateAvailable` listener is registered in `init()`
+ *   and persists throughout the extension lifecycle.
+ * - If Chrome downloads an update automatically (even before user checks manually),
+ *   the `onUpdateAvailable` event will fire and make the "Update" button available immediately.
+ * - According to Chrome documentation, when `onUpdateAvailable` listener is present,
+ *   Chrome will NOT automatically reload the extension. Instead, it waits for the extension
+ *   to call `chrome.runtime.reload()` when ready (i.e., when user clicks "Update" button).
+ * - This allows the user to finish their work before reloading the extension.
+ *
+ * ## Auto-update behavior:
+ * - Update icon appears only after `ICON_DELAY_MS` since update became available.
+ * - Update applies automatically after `IDLE_THRESHOLD_MS` of browser inactivity.
+ * - Browser inactivity is tracked via webNavigation.onCommitted events.
+ * - Config can be overridden via chrome.storage.local (key: 'auto-update-config-mv3').
+ * - Config is loaded once during initialization and cached in memory.
  */
 export class ExtensionUpdateService {
     /**
-     * Regular expression to match the version from the latest version URL.
+     * State manager for save current update state during SW restarts.
      */
-    private static readonly LATEST_VERSION_URL_REGEXP = /_([0-9_]+)\.crx$/;
+    private static stateManager = new AutoUpdateStateManager();
+
+    /**
+     * Auto-update handler for orchestrating automatic updates. Will be set only
+     * after receiving onUpdateAvailable event since it do not needed before.
+     */
+    private static autoUpdateHandler: AutoUpdateHandler | null = null;
+
+    /**
+     * Manual update handler for user-initiated updates.
+     */
+    private static manualUpdateHandler: ManualUpdateHandler;
 
     /**
      * Initializes the service.
+     *
+     * IMPORTANT.
+     * The `onUpdateAvailable` listener is registered here
+     * and persists for the entire extension lifecycle.
+     * This means:
+     * - If Chrome downloads an update automatically, this listener will fire
+     *   and make the "Update" button available in the UI.
+     * - The user can then reload the extension at their convenience by clicking "Update".
+     * - Chrome will NOT automatically reload the extension when this listener is present.
      */
-    public static init(): void {
+    public static async init(): Promise<void> {
         extensionUpdateActor.start();
 
-        messageHandler.addListener(
-            MessageType.CheckExtensionUpdateFromPopup,
-            ExtensionUpdateService.manualCheckExtensionUpdateFromPopup,
-        );
-        messageHandler.addListener(
-            MessageType.CheckExtensionUpdateFromOptions,
-            ExtensionUpdateService.manualCheckExtensionUpdateFromOptions,
-        );
+        // Initialize manual update handler
+        ExtensionUpdateService.manualUpdateHandler = new ManualUpdateHandler({
+            stateManager: ExtensionUpdateService.stateManager,
+            onUpdateCheckStart: (): void => {
+                extensionUpdateActor.send({ type: ExtensionUpdateFSMEvent.Check });
+            },
+            onUpdateCheckComplete: (hasUpdate: boolean): void => {
+                if (hasUpdate) {
+                    // If hasUpdate, we just wait for user to click "Update" button.
+                    return;
+                }
+
+                extensionUpdateActor.send({ type: ExtensionUpdateFSMEvent.NoUpdateAvailable });
+            },
+            onUpdateApplyStart: (): void => {
+                extensionUpdateActor.send({ type: ExtensionUpdateFSMEvent.Update });
+            },
+            onUpdateApplyFailed: (): void => {
+                extensionUpdateActor.send({ type: ExtensionUpdateFSMEvent.UpdateFailed });
+            },
+            // We do not set onUpdateApplyComplete since no logic is needed
+            // after auto-update is applied.
+        });
+
+        // Register listener that will be called when Chrome finishes downloading an update.
+        // This can happen either:
+        // 1. After manual check via requestUpdateCheck() (user clicked "Check for Updates")
+        // 2. Automatically when Chrome detects and downloads an update in background
+        chrome.runtime.onUpdateAvailable.addListener(ExtensionUpdateService.onUpdateAvailable);
 
         messageHandler.addListener(
-            MessageType.UpdateExtensionFromPopup,
-            ExtensionUpdateService.manualUpdateExtensionFromPopup,
+            MessageType.CheckExtensionUpdateMv3,
+            ExtensionUpdateService.manualUpdateHandler.check.bind(
+                ExtensionUpdateService.manualUpdateHandler,
+            ),
         );
         messageHandler.addListener(
-            MessageType.UpdateExtensionFromOptions,
-            ExtensionUpdateService.manualUpdateExtensionFromOptions,
+            MessageType.UpdateExtensionMv3,
+            (message) => ExtensionUpdateService.manualUpdateHandler.applyUpdate.call(
+                ExtensionUpdateService.manualUpdateHandler,
+                message.data.from,
+                () => ExtensionUpdateService.clearAutoUpdateState(),
+            ),
+        );
+
+        // Load persisted state if any saved before SW restart
+        const state = await ExtensionUpdateService.stateManager.init();
+
+        if (!state || !state.nextVersion) {
+            return;
+        }
+
+        // If update was already available before SW restart, manually trigger
+        // `onUpdateAvailable` to restore the update process, independently of
+        // source of update (manual or automatic).
+        ExtensionUpdateService.onUpdateAvailable(
+            { version: state.nextVersion },
+            state.lastNavigationTimestamp,
         );
     }
 
     /**
-     * Checks for extension updates initiated from popup.
-     */
-    private static async manualCheckExtensionUpdateFromPopup(): Promise<void> {
-        const start = Date.now();
-        const isAvailable = await ExtensionUpdateService.manualCheckExtensionUpdate();
-
-        // wait for more smooth user experience
-        // NOTE: it has to be done here and not in the UI components
-        // because UI notifications strictly depend on the state machine states
-        await sleepIfNecessary(start, MIN_UPDATE_DISPLAY_DURATION_MS);
-
-        if (isAvailable) {
-            await ExtensionUpdateService.manualUpdateExtension(ManualExtensionUpdatePage.Popup);
-        } else {
-            extensionUpdateActor.send({ type: ExtensionUpdateFSMEvent.NoUpdateAvailable });
-        }
-    }
-
-    /**
-     * Checks for extension updates initiated from options page.
+     * Handles the onUpdateAvailable event from Chrome runtime.
      *
-     * @returns True if update is available, false otherwise.
-     */
-    private static async manualCheckExtensionUpdateFromOptions(): Promise<boolean> {
-        const start = Date.now();
-        const isAvailable = await ExtensionUpdateService.manualCheckExtensionUpdate();
-
-        if (!isAvailable) {
-            // wait for more smooth user experience
-            // NOTE: it has to be done here and not in the UI components
-            // because UI notifications strictly depend on the state machine states
-            await sleepIfNecessary(start, MIN_UPDATE_DISPLAY_DURATION_MS);
-            extensionUpdateActor.send({ type: ExtensionUpdateFSMEvent.NoUpdateAvailable });
-        }
-
-        return isAvailable;
-    }
-
-    /**
-     * Checks for extension updates initiated from options page.
-     */
-    private static async manualUpdateExtensionFromOptions(): Promise<void> {
-        await ExtensionUpdateService.manualUpdateExtension(ManualExtensionUpdatePage.Options);
-    }
-
-    /**
-     * Updates the extension initiated from popup.
-     */
-    private static async manualUpdateExtensionFromPopup(): Promise<void> {
-        await ExtensionUpdateService.manualUpdateExtension(ManualExtensionUpdatePage.Popup);
-    }
-
-    /**
-     * Checks for extension updates.
+     * This listener is called by Chrome when an extension update has been downloaded
+     * and is ready to be installed, or by explicitly after SW restart and update
+     * is already available.
+     * This can happen in the following scenarios:
      *
-     * @returns True if update is available, false otherwise.
-     */
-    private static async manualCheckExtensionUpdate(): Promise<boolean> {
-        const start = Date.now();
-        // Drive state machine: enter Checking
-        extensionUpdateActor.send({ type: ExtensionUpdateFSMEvent.Check });
-
-        const latestChromeStoreVersion = await ExtensionUpdateService.getLatestChromeStoreVersion();
-        if (!latestChromeStoreVersion) {
-            logger.debug('[ext.ExtensionUpdateService.manualCheckExtensionUpdate]: Cannot retrieve latest version from Chrome Web Store');
-            // do not return yet
-        }
-
-        let nextUpdateVersion: string | undefined;
-        let status: chrome.runtime.RequestUpdateCheckStatus;
-        try {
-            // runtime.requestUpdateCheck() should be used to actually check updates
-            // because new extension version may not be loaded on the computer yet
-            const res = await ExtensionUpdateService.requestUpdateCheckWithTimeout(UPDATE_CHECK_TIMEOUT_MS);
-            status = res.status;
-            nextUpdateVersion = res.version;
-        } catch (e) {
-            logger.warn('[ext.ExtensionUpdateService.manualCheckExtensionUpdate]: requestUpdateCheck failed or timed out, reason:', e);
-            return false;
-        }
-
-        /**
-         * Check if update is available,
-         * otherwise (if 'throttled' or 'no_update') return false.
-         *
-         * @see {@link https://developer.chrome.com/docs/extensions/reference/api/runtime#method-requestUpdateCheck}
-         */
-        if (status !== 'update_available') {
-            logger.debug(`[ext.ExtensionUpdateService.manualCheckExtensionUpdate]: Update is not available, status: '${status}'`);
-            return false;
-        }
-
-        if (!nextUpdateVersion) {
-            logger.debug('[ext.ExtensionUpdateService.manualCheckExtensionUpdate]: Update version (via requestUpdateCheck) is empty');
-            return false;
-        }
-
-        if (latestChromeStoreVersion && nextUpdateVersion !== latestChromeStoreVersion) {
-            logger.debug(`[ext.ExtensionUpdateService.manualCheckExtensionUpdate]: Next update version '${nextUpdateVersion}' is not equal to latest version available in CWS '${latestChromeStoreVersion}'`);
-        }
-
-        const { currentAppVersion } = await getRunInfo();
-
-        const currentVersion = new Version(currentAppVersion);
-        const latestVersion = new Version(nextUpdateVersion || latestChromeStoreVersion);
-        const isUpdateAvailable = latestVersion.compare(currentVersion) > 0;
-
-        if (isUpdateAvailable) {
-            // wait for more smooth user experience
-            // NOTE: it has to be done here and not in the UI components
-            // because UI notifications strictly depend on the state machine states
-            await sleepIfNecessary(start, MIN_UPDATE_DISPLAY_DURATION_MS);
-            // Drive state machine: update is available
-            extensionUpdateActor.send({ type: ExtensionUpdateFSMEvent.UpdateAvailable });
-            logger.debug(`[ext.ExtensionUpdateService.manualCheckExtensionUpdate]: Current version ${currentAppVersion} is lower than latest available version ${nextUpdateVersion}`);
-        }
-
-        return isUpdateAvailable;
-    }
-
-    /**
-     * Updates the extension.
+     * 1. **After manual check**: User clicked "Check for Updates" → requestUpdateCheck()
+     *    found an update → Chrome downloaded it → this listener fires.
+     *    In this case, update icon appears immediately.
      *
-     * @param fromPage Page from which the update was triggered.
+     * 2. **Automatic update check**: Chrome detected and downloaded an update in background
+     *    (even if user never clicked "Check for Updates") → this listener fires.
+     *    In this case, update icon appears after iconDelayMs.
+     *
+     * 3. **After service worker restart**: If update was already available before restart,
+     *    the persisted state is loaded from storage and this method is called
+     *    again to restore the update state, periodic checks, and navigation
+     *    listener to continue the auto-update process seamlessly if
+     *    check was initiated automatically, or shows the update icon immediately
+     *    if it was a manual check.
+     *
+     * When this listener is registered, Chrome will NOT automatically reload the extension.
+     * Instead, it waits for the extension to call chrome.runtime.reload() explicitly.
+     *
+     * @param details Details about the available update.
+     * @param details.version The version of the available update.
+     * @param loadedNavigationTimestampMs Timestamp of the navigation event if
+     * it was loaded from storage after SW restart.
      */
-    private static async manualUpdateExtension(fromPage: ManualExtensionUpdatePage): Promise<void> {
-        const start = Date.now();
-        // Drive state machine: start updating
-        extensionUpdateActor.send({ type: ExtensionUpdateFSMEvent.Update });
+    private static async onUpdateAvailable(
+        { version }: chrome.runtime.UpdateAvailableDetails,
+        loadedNavigationTimestampMs?: number,
+    ): Promise<void> {
+        logger.info(
+            '[ext.ExtensionUpdateService.onUpdateAvailable]:',
+            `Update became available, version: ${version}, manual check: ${ExtensionUpdateService.stateManager.get(AutoUpdateStateField.isManualCheck)}`,
+        );
 
-        let isExtensionUpdated = false;
+        // Send UpdateAvailable event to FSM → FSM transitions to Available state → UI shows Update button
+        extensionUpdateActor.send({ type: ExtensionUpdateFSMEvent.UpdateAvailable });
 
-        try {
-            const { currentAppVersion } = await getRunInfo();
-            const manualExtensionDataToSave: ManualExtensionUpdateData = {
-                initVersion: currentAppVersion,
-                pageToOpenAfterReload: fromPage,
-                isOk: true,
-            };
-            // IMPORTANT: saving to storage should be done before the extension reload
-            await browserStorage.set(MANUAL_EXTENSION_UPDATE_KEY, JSON.stringify(manualExtensionDataToSave));
+        // Store version in state
+        ExtensionUpdateService.stateManager.set(AutoUpdateStateField.nextVersion, version);
 
-            // wait for more smooth user experience
-            // NOTE: it has to be done here and not in the UI components
-            // because UI notifications strictly depend on the state machine states
-            await sleepIfNecessary(start, MIN_UPDATE_DISPLAY_DURATION_MS);
-
-            ExtensionUpdateService.reloadExtension();
-            isExtensionUpdated = true;
-        } catch (e) {
-            await browserStorage.remove(MANUAL_EXTENSION_UPDATE_KEY);
-            isExtensionUpdated = false;
-            logger.error(`[ext.ExtensionUpdateService.manualUpdateExtension]: Failed to reload extension: ${e}`);
+        // Delegate to appropriate handler based on check type
+        if (ExtensionUpdateService.stateManager.get(AutoUpdateStateField.isManualCheck)) {
+            // Manual check: delegate to manual handler
+            await ExtensionUpdateService.manualUpdateHandler.onUpdateAvailable();
+            return;
         }
 
-        // IMPORTANT: only failure of the update is handled here
-        // since its success is handled after the extension reload
-        if (!isExtensionUpdated) {
-            // wait for more smooth user experience
-            // NOTE: it has to be done here and not in the UI components
-            // because UI notifications strictly depend on the state machine states
-            await sleepIfNecessary(start, MIN_UPDATE_DISPLAY_DURATION_MS);
-            extensionUpdateActor.send({ type: ExtensionUpdateFSMEvent.UpdateFailed });
+        // Automatic check: delegate to auto handler
+
+        // Auto-update handler should be initialized only once
+        if (ExtensionUpdateService.autoUpdateHandler) {
+            logger.debug('[ext.ExtensionUpdateService.onUpdateAvailable]: Auto-update handler already initialized it will be overwritten.');
         }
-    }
 
-    /**
-     * Reloads the extension.
-     *
-     * IMPORTANT:
-     * `chrome.runtime.reload` should be used,
-     * otherwise service worker may be inactive after reload
-     * if `browser.runtime.reload` from webextension-polyfill is used.
-     */
-    private static reloadExtension(): void {
-        chrome.runtime.reload();
-    }
+        ExtensionUpdateService.autoUpdateHandler = new AutoUpdateHandler({
+            stateManager: ExtensionUpdateService.stateManager,
+            onUpdateApplyStart: (): void => {
+                extensionUpdateActor.send({ type: ExtensionUpdateFSMEvent.Update });
+            },
+            onUpdateApplyFailed: (): void => {
+                extensionUpdateActor.send({ type: ExtensionUpdateFSMEvent.UpdateFailed });
+            },
+        });
 
-    /**
-     * Wraps chrome.runtime.requestUpdateCheck() with a timeout.
-     *
-     * @param timeoutMs Max time in milliseconds to wait before rejecting.
-     *
-     * @returns Promise that resolves to the result of requestUpdateCheck
-     * or rejects if the timeout is reached.
-     */
-    private static async requestUpdateCheckWithTimeout(
-        timeoutMs: number,
-    ): Promise<{ status: chrome.runtime.RequestUpdateCheckStatus; version?: string }> {
-        return createPromiseWithTimeout(
-            chrome.runtime.requestUpdateCheck(),
-            timeoutMs,
-            `requestUpdateCheck timed out after ${timeoutMs} ms`,
+        await ExtensionUpdateService.autoUpdateHandler.onUpdateAvailable(
+            loadedNavigationTimestampMs,
         );
     }
 
     /**
-     * Retrieves manual extension update data from storage.
-     *
-     * @returns Manual extension update data or null if not found.
-     */
-    private static async retrieveManualExtensionUpdateData(): Promise<ManualExtensionUpdateData | null> {
-        const manualExtensionUpdateStr = await browserStorage.get(MANUAL_EXTENSION_UPDATE_KEY);
-
-        if (typeof manualExtensionUpdateStr !== 'string') {
-            return null;
-        }
-
-        try {
-            const parsedData = ManualExtensionUpdateDataValidator.parse(JSON.parse(manualExtensionUpdateStr));
-            return parsedData;
-        } catch (e) {
-            logger.debug('[ext.ExtensionUpdateService.retrieveManualExtensionUpdateData]: Failed to parse manual extension update data: ', e);
-            return null;
-        }
-    }
-
-    /**
-     * Handles extension reload after update.
-     *
-     * NOTE: It is possible that the extension version is not actually updated
-     * so "failed" notification should be shown.
+     * See {@link ManualUpdateHandler.handleReload} description.
      *
      * @param isUpdate Whether the extension version was updated.
+     *
+     * @returns Promise that resolves when handling completes.
      */
     public static async handleExtensionReloadOnUpdate(isUpdate: boolean): Promise<void> {
-        const manualExtensionUpdateData = await ExtensionUpdateService.retrieveManualExtensionUpdateData();
-
-        if (!manualExtensionUpdateData) {
-            logger.debug('[ext.ExtensionUpdateService.handleExtensionReloadOnUpdate]: No manual extension update data found');
-            return;
-        }
-
-        const { initVersion, pageToOpenAfterReload } = manualExtensionUpdateData;
-
-        if (isUpdate) {
-            logger.info(`[ext.ExtensionUpdateService.handleExtensionReloadOnUpdate]: The extension was updated from ${initVersion}`);
-        }
-
-        if (!pageToOpenAfterReload) {
-            logger.warn('[ext.ExtensionUpdateService.handleExtensionReloadOnUpdate]: No pageToOpenAfterReload found');
-            await browserStorage.remove(MANUAL_EXTENSION_UPDATE_KEY);
-            return;
-        }
-
-        /**
-         * Note 1:
-         * MANUAL_EXTENSION_UPDATE_KEY is not removed here
-         * and it will be removed after the needed page is opened.
-         * It is needed for the notification showing.
-         *
-         * Note 2:
-         * If `pageToOpenAfterReload` is present in the storage,
-         * it means that the extension update was triggered by a user.
-         * Due to the Note 1, if this data is present and it is not an update (isUpdate === false),
-         * it means that the update failed, and `isOk` should be set to `false`
-         * before the page is opened, so it is to be retrieved on the page
-         * to show the "failed update" notification.
-         */
-        if (!isUpdate) {
-            await browserStorage.set(
-                MANUAL_EXTENSION_UPDATE_KEY,
-                JSON.stringify({
-                    initVersion,
-                    pageToOpenAfterReload,
-                    isOk: false,
-                }),
-            );
-        }
-
-        if (pageToOpenAfterReload === ManualExtensionUpdatePage.Options) {
-            logger.info('[ext.ExtensionUpdateService.handleExtensionReloadOnUpdate]: Opening options page...');
-            await PagesApi.openFiltersOnSettingsPage();
-        } else if (pageToOpenAfterReload === ManualExtensionUpdatePage.Popup) {
-            logger.info('[ext.ExtensionUpdateService.handleExtensionReloadOnUpdate]: Opening popup...');
-            await PagesApi.openExtensionPopup();
-        }
-    }
-
-    /**
-     * Returns the latest version of the extension available in the Chrome Web Store.
-     *
-     * @returns Extension version available in the Chrome Web Store.
-     *
-     * @throws Error if fetching the version fails.
-     */
-    private static async getLatestChromeStoreVersion(): Promise<string | null> {
-        const extensionId = Prefs.id;
-
-        const possibleExtensionIds = Object.values(ExtensionsIds).filter((id) => !!id);
-
-        if (!possibleExtensionIds.includes(extensionId)) {
-            logger.debug(`[ext.ExtensionUpdateService.getLatestChromeStoreVersion]: Invalid extension ID: '${extensionId}'`);
-            return null;
-        }
-
-        const updateUrl = getCrxUrl(extensionId);
-
-        logger.debug(`[ext.ExtensionUpdateService.getLatestChromeStoreVersion]: Checking for updates at ${updateUrl}...`);
-
-        let response: Response;
-        try {
-            response = await fetch(updateUrl, {
-                // HEAD is needed to minimize the extension update response size. AG-46443
-                method: 'HEAD',
-            });
-        } catch (e) {
-            logger.debug(`[ext.ExtensionUpdateService.getLatestChromeStoreVersion]: Failed to fetch update for "${updateUrl}": ${e}`);
-            return null;
-        }
-
-        if (response.status !== 200) {
-            logger.debug(`[ext.ExtensionUpdateService.getLatestChromeStoreVersion]: No update found for "${updateUrl}", status: ${response.status}`);
-            return null;
-        }
-
-        const latestVersionUrl = response.url;
-
-        if (!latestVersionUrl) {
-            logger.debug(`[ext.ExtensionUpdateService.getLatestChromeStoreVersion]: No redirect location header found for "${extensionId}"`);
-            return null;
-        }
-
-        const match = latestVersionUrl.match(this.LATEST_VERSION_URL_REGEXP);
-
-        if (!match || !match[1]) {
-            logger.debug('[ext.ExtensionUpdateService.getLatestChromeStoreVersion]: Could not parse version from redirect URL.');
-            return null;
-        }
-
-        const latestExtensionVersionInStore = match[1]
-            // '5_1_111_0' -> '5.1.111.0'
-            .replace(/_/g, '.')
-            // '5.1.111.0' -> '5.1.111'
-            .replace(/\.0$/g, '');
-
-        return latestExtensionVersionInStore;
+        return ManualUpdateHandler.handleReload(isUpdate);
     }
 
     /**
@@ -425,24 +261,77 @@ export class ExtensionUpdateService {
      *
      * @returns True if update is available, false otherwise.
      */
-    public static getIsUpdateAvailable(): boolean {
+    public static get isUpdateAvailable(): boolean {
         const currentState = extensionUpdateActor.getSnapshot().value;
         return currentState === ExtensionUpdateFSMState.Available;
     }
 
     /**
-     * Returns boolean value indicating if extension update was done manually previously.
+     * See {@link ManualUpdateHandler.getUpdateData} description.
      *
-     * IMPORTANT!
-     * After retrieving the value from the storage, it is removed.
-     *
-     * @returns True if extension was updated and reloaded previously, false otherwise.
+     * @returns Manual extension update data or null if not found.
      */
-    public static async getManualExtensionUpdateData(): Promise<ManualExtensionUpdateData | null> {
-        const manualExtensionUpdateData = await ExtensionUpdateService.retrieveManualExtensionUpdateData();
+    public static async getManualExtensionUpdateData(): Promise<ManualUpdateMetadata | null> {
+        return ManualUpdateHandler.getUpdateData();
+    }
 
-        await browserStorage.remove(MANUAL_EXTENSION_UPDATE_KEY);
+    /**
+     * Clears auto-update handler and state.
+     * Called when manual update is applied to clean up any persisted state.
+     */
+    private static async clearAutoUpdateState(): Promise<void> {
+        // Clear auto-update handler if it exists (automatic checks)
+        if (ExtensionUpdateService.autoUpdateHandler) {
+            // This also clears the state manager internally
+            await ExtensionUpdateService.autoUpdateHandler.clearState();
+            ExtensionUpdateService.autoUpdateHandler = null;
+        } else {
+            // For manual checks, autoUpdateHandler doesn't exist, so clear
+            // state manager directly, since it contains shared state too.
+            await ExtensionUpdateService.stateManager.clear();
+        }
+    }
 
-        return manualExtensionUpdateData;
+    /**
+     * Checks if update icon should be shown based on delay period.
+     *
+     * For manual checks: Icon is shown immediately.
+     * For automatic checks: Icon is shown after iconDelayMs.
+     *
+     * Uses in-memory cache to avoid storage reads on every icon update (called for each tab).
+     * State is loaded from storage on init and updated on events.
+     *
+     * @returns True if icon should be shown, false otherwise.
+     */
+    public static shouldShowUpdateIcon(): boolean {
+        const nextVersion = ExtensionUpdateService.stateManager.get(AutoUpdateStateField.nextVersion);
+        if (!ExtensionUpdateService.isUpdateAvailable || !nextVersion) {
+            return false;
+        }
+
+        // If last check was manual, show icon immediately.
+        if (ExtensionUpdateService.stateManager.get(AutoUpdateStateField.isManualCheck)) {
+            return true;
+        }
+
+        const updateAvailableTimestamp = ExtensionUpdateService.stateManager.get(
+            AutoUpdateStateField.updateAvailableTimestamp,
+        );
+        if (updateAvailableTimestamp === undefined) {
+            logger.trace('[ext.ExtensionUpdateService.shouldShowUpdateIcon]: Update available timestamp is undefined, cannot determine if update icon should be shown');
+            return false;
+        }
+
+        // For automatic checks, wait for delay period.
+        const timeSinceUpdateAvailable = Date.now() - updateAvailableTimestamp;
+
+        if (!ExtensionUpdateService.autoUpdateHandler) {
+            logger.trace('[ext.ExtensionUpdateService.shouldShowUpdateIcon]: AutoUpdateHandler is not initialized, cannot determine if update icon should be shown');
+            return false;
+        }
+
+        logger.trace(`[ext.ExtensionUpdateService.shouldShowUpdateIcon]: Time since update available: ${timeSinceUpdateAvailable}`);
+
+        return timeSinceUpdateAvailable >= ExtensionUpdateService.autoUpdateHandler.iconDelayMs;
     }
 }

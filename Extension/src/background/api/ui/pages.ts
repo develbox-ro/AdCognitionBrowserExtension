@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -303,9 +305,14 @@ export class PagesApi {
         }
 
         const isCustomFiltersEnabled = groupStateStorage.get(AntibannerGroupsId.CustomFiltersGroupId)?.enabled;
-        // Ignoring custom filters in MV3 since AG-39385.
-        // TODO: fix the condition when custom filters will be supported for MV3
-        if (isCustomFiltersEnabled && !__IS_MV3__) {
+        if (
+            isCustomFiltersEnabled
+            && (
+                // always report custom filters for mv2
+                !__IS_MV3__
+                // report custom filters for mv3 if userscript api permission is granted
+                || (__IS_MV3__ && isUserScriptsApiSupported()))
+        ) {
             const customFilterUrls = CustomFilterApi.getFiltersData()
                 .filter(({ enabled }) => enabled)
                 .map(({ customUrl }) => UrlUtils.trimFilterFilepath(customUrl));
@@ -407,6 +414,8 @@ export class PagesApi {
     public static async openThankYouPage(): Promise<void> {
         const params = BrowserUtils.getExtensionParams();
         params.push(`_locale=${encodeURIComponent(browser.i18n.getUILanguage())}`);
+        // Param for hiding telemetry consent checkbox for old extension versions
+        params.push('show_telemetry_consent=true');
 
         const pageUrl = __IS_MV3__ ? PagesApi.thankYouPageUrlMv3 : PagesApi.thankYouPageUrl;
         const thankYouUrl = `${pageUrl}?${params.join('&')}`;
@@ -532,7 +541,8 @@ export class PagesApi {
     }
 
     /**
-     * Opens the extension popup in the last focused _normal_ window.
+     * Opens the extension popup in the last focused _normal_ window
+     * which is a regular browser window with a toolbar.
      */
     public static async openExtensionPopup(): Promise<void> {
         // opening popup in the window with no toolbar throws an error. AG-46535
@@ -542,6 +552,19 @@ export class PagesApi {
 
         if (!lastFocusedWindowId) {
             logger.warn('[ext.PagesApi.openExtensionPopup]: No normal window found to open popup');
+            return;
+        }
+
+        /**
+         * Verify that any browser window is actually *active*.
+         * Because if user has switched to another app -> browser window is inactive,
+         * we cannot focus it forcibly, and cannot open the popup in it.
+         *
+         * So here we just gracefully log the reason and exit to avoid errors.
+         */
+        const window = await chrome.windows.get(lastFocusedWindowId);
+        if (!window.focused) {
+            logger.warn('[ext.PagesApi.openExtensionPopup]: Window is not focused. User may have switched to another window.');
             return;
         }
 

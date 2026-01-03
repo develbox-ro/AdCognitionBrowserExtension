@@ -5,7 +5,7 @@ plan:
   key: BEINCRSPECS
   name: browser extension - increment version
 variables:
-  dockerNode: adguard/extension-builder:22.17--0.2.1--0
+  dockerNode: adguard/extension-builder:22.17--0.3.0--0
 
 stages:
   - Increment:
@@ -37,6 +37,12 @@ Increment:
 
             ls -la
 
+            # Set cache directory
+            pnpm config set store-dir ${bamboo.cachePnpm}
+
+            # Install deps for custom increment script
+            pnpm install ${bamboo.varsPnpm}
+
             pnpm increment
     - any-task:
         plugin-key: com.atlassian.bamboo.plugins.vcs:task.vcs.commit
@@ -50,6 +56,7 @@ Increment:
           - "./bamboo-specs/scripts/cleanup.sh"
   requirements:
     - adg-docker: 'true'
+    - extension: 'true'
 
 branches:
   create: manually

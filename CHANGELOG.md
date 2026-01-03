@@ -5,7 +5,94 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 5.2
+## [5.2.800] - 2025-12-25
+
+### Fixed
+
+- Memory leak caused by storing data URL favicons in tab contexts. [#2594]
+
+[#2594]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/2594
+
+[5.2.800]: https://github.com/AdguardTeam/AdguardBrowserExtension/releases/tag/v5.2.800%2B1.build.20251216080045
+
+## [5.2.600] - 2025-12-16
+
+### Fixed
+
+- Made clipboard permissions optional for Firefox, with a prompt shown when needed in User Rules and Allowlist editors [#3364]
+- The extension doesn't work in browser 360 [#3058].
+
+[#3364]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3364
+[#3058]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3058
+
+[5.2.600]: https://github.com/AdguardTeam/AdguardBrowserExtension/releases/tag/v5.2.600%2B3.build.20251209190042
+
+## [5.2.500] - 2025-12-05
+
+### Fixed
+- The update promo banner does not persist dismissal and shows again after
+  the extension updates [#3385].
+
+### Changed
+
+- Updated [@adguard/agtree] to v3.3.1.
+- Updated [@adguard/assistant] to v4.3.77.
+- Updated [@adguard/scriptlets] to v2.2.13.
+- Updated [@adguard/tsurlfilter] to v3.5.1.
+- Updated [@adguard/tswebextension] to v3.2.16.
+
+[#3385]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3385
+
+[5.2.500]: https://github.com/AdguardTeam/AdguardBrowserExtension/releases/tag/v5.2.500%2B0.build.20251127140045
+
+## [5.2.400] - 2025-11-24
+
+### Added
+
+- New loading icon and animation for the extension popup.
+- Add ability to update custom filters in MV3 [#3016].
+
+### Changed
+
+- Extension will apply auto-update in MV3 if update is available and browser
+  became idle for a while.
+
+[5.2.400]: https://github.com/AdguardTeam/AdguardBrowserExtension/releases/tag/v5.2.400%2B0.build.20251119090043
+[#3016]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3016
+
+## [5.2.113.0]
+
+### Fixed
+
+- Removed clipboard permissions [#3362].
+
+[#3362]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3362
+[5.2.113.0]: https://github.com/AdguardTeam/AdguardBrowserExtension/releases/tag/5.2.113%2B0.build.20251022090039
+
+## [5.2.112.84] - 2025-10-25
+
+### Changed
+
+- Updated [@adguard/tswebextension] to v3.2.13.
+
+[5.2.112.84]: https://github.com/AdguardTeam/AdguardBrowserExtension/releases/tag/v5.2.112%2B84.build.20251022090039
+
+## [5.2.112.1] - 2025-10-13
+
+### Changed
+
+- New 4 digits build versioning scheme: `major.minor.patch+buildTag`. `buildTag`
+  is incremented with every build.
+
+### Fixed
+
+- Minimize the extension update fetch response size in MV3.
+- The extension is failed to update via the popup [#3317].
+
+[5.2.112.1]: https://github.com/AdguardTeam/AdguardBrowserExtension/releases/tag/v5.2.112%2B1.build.20251009120050
+[#3317]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3317
+
+## [5.2.77] - 2025-09-22
 
 ### Added
 
@@ -62,6 +149,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wrong rule is displayed for page blocked by `$document` rule in MV3 [#3260].
 - Overflowing notification text in the options page.
 
+[5.2.77]: https://github.com/AdguardTeam/AdguardBrowserExtension/releases/tag/v5.2.77
 [#2305]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/2305
 [#2315]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/2315
 [#2327]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/2327
@@ -78,15 +166,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#3055]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3055
 [#3061]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3061
 [#3122]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3122
-[#3192]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3192
 [#3145]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3145
 [#3157]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3157
 [#3158]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3158
-[#3216]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3216
 [#3163]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3163
 [#3164]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3164
 [#3189]: https://github.com/AdguardTeam/AdguardBrowserExtension/pull/3189
+[#3192]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3192
 [#3204]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3204
+[#3216]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3216
 [#3260]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3260
 [#3263]: https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3263
 [tsurlfilter#147]: https://github.com/AdguardTeam/tsurlfilter/issues/147

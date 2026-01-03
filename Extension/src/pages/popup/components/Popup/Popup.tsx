@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -30,9 +32,12 @@ import { Icons } from '../ui/Icons';
 import { MainContainer } from '../MainContainer';
 import { Notifications } from '../Notifications';
 import { PromoNotification } from '../PromoNotification';
-import { SplashScreen } from '../SplashScreen';
 import { popupStore } from '../../stores/PopupStore';
-import { messenger } from '../../../services/messenger';
+import {
+    messenger,
+    Messenger,
+    Page,
+} from '../../../services/messenger';
 import { useAppearanceTheme } from '../../../common/hooks/useAppearanceTheme';
 import { Icons as CommonIcons } from '../../../common/components/ui/Icons';
 import {
@@ -43,6 +48,9 @@ import {
 } from '../../../../common/messages';
 import { logger } from '../../../../common/logger';
 import { useObservePopupHeight } from '../../hooks/useObservePopupHeight';
+import { TelemetryScreenName } from '../../../../background/services/telemetry/enums';
+import { useTelemetryPageViewEvent } from '../../../common/telemetry';
+import { AnimatedLoader } from '../AnimatedLoader';
 
 import '../../styles/main.pcss';
 import './popup.pcss';
@@ -50,23 +58,29 @@ import './popup.pcss';
 export const Popup = observer(() => {
     const {
         appearanceTheme,
-        isLoading,
-        isEngineStarted,
-        checkIsEngineStarted,
+        isAppInitialized,
+        fetchIsAppInitialized,
+        setIsAppInitialized,
         getPopupData,
         updateBlockedStats,
         isAndroidBrowser,
+        isFilteringPossible,
+        telemetryStore,
     } = useContext(popupStore);
 
     useAppearanceTheme(appearanceTheme);
 
+    // Send different telemetry screen name based on whether filtering is possible
+    const screenName = isFilteringPossible ? TelemetryScreenName.MainPage : TelemetryScreenName.SecurePage;
+    useTelemetryPageViewEvent(telemetryStore, screenName);
+
     // retrieve init data
     useEffect(() => {
         (async () => {
-            await checkIsEngineStarted();
+            await fetchIsAppInitialized();
             await getPopupData();
         })();
-    }, [checkIsEngineStarted, getPopupData]);
+    }, [fetchIsAppInitialized, getPopupData]);
 
     /**
      * We are adding "android" class to html element
@@ -120,6 +134,24 @@ export const Popup = observer(() => {
         handleResizeCleanUp,
     );
 
+    // Set up telemetry page ID from long-lived connection
+    useEffect(() => {
+        // For popup we only need the portId (e.g. for telemetry) and don't listen
+        // for any messages on this long-lived connection, so we pass an empty handler.
+        const { portId, onUnload } = Messenger.createLongLivedConnection(
+            Page.Popup,
+            [],
+            () => {},
+        );
+
+        telemetryStore.setPageId(portId);
+
+        return () => {
+            telemetryStore.setPageId(null);
+            onUnload();
+        };
+    }, [telemetryStore]);
+
     // subscribe to stats change
     useEffect(() => {
         const messageHandler = (message: unknown): undefined => {
@@ -139,6 +171,7 @@ export const Popup = observer(() => {
                     break;
                 }
                 case MessageType.AppInitialized: {
+                    setIsAppInitialized(true);
                     getPopupData();
                     break;
                 }
@@ -152,7 +185,7 @@ export const Popup = observer(() => {
         return () => {
             messenger.onMessage.removeListener(messageHandler);
         };
-    }, [updateBlockedStats, getPopupData]);
+    }, [updateBlockedStats, getPopupData, setIsAppInitialized]);
 
     const LoadedPopup = (
         <>
@@ -166,15 +199,13 @@ export const Popup = observer(() => {
         </>
     );
 
-    const PopupContent = isLoading
-        ? <SplashScreen isEngineStarted={isEngineStarted} />
-        : LoadedPopup;
-
     return (
         <>
             <CommonIcons />
             <Icons />
-            {PopupContent}
+            <AnimatedLoader isLoading={!isAppInitialized}>
+                {LoadedPopup}
+            </AnimatedLoader>
         </>
     );
 });

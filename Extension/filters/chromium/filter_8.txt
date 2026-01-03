@@ -1,9 +1,9 @@
-! Checksum: CFOJACOwcyoB9SHpdmuHNQ
-! Diff-Path: ../patches/8/8-s-1757596589-3600.patch
+! Checksum: RKIwvsTUWLSdmfnHzVZvIA
+! Diff-Path: ../patches/8/8-s-1765530783-3600.patch
 ! Title: AdGuard Dutch filter
 ! Description: EasyList Dutch + AdGuard Dutch filter. Filter list that specifically removes ads on websites in Dutch language.
-! Version: 2.0.8.64
-! TimeUpdated: 2025-09-11T13:12:23+00:00
+! Version: 2.0.8.82
+! TimeUpdated: 2025-12-12T09:10:13+00:00
 ! Expires: 10 days (update frequency)
 ! Homepage: https://github.com/AdguardTeam/AdGuardFilters
 ! License: https://github.com/AdguardTeam/AdguardFilters/blob/master/LICENSE
@@ -795,7 +795,7 @@ treinreiziger.nl##.ads-adsense-treinreiziger-horizontaal
 treinreiziger.nl##.ads-adsense-treinreiziger-horizontaal-5
 faillissementsdossier.nl##.adsbybinq
 openingstijden.com,promootjesite.nl,radiofm.nl##.adsense
-adodenhaag.nl,spelletje.nl##.adv
+adodenhaag.nl,schuttevaer.nl,spelletje.nl##.adv
 amusement.tv,beurs.tv,cultuur.tv,formule1.tv,gamen.tv,geloof.tv,gezondheid.tv,informatief.tv,jongeren.tv,kennis.tv,kinderen.tv,kook.tv,lachen.tv,mensen.tv,mode.tv,muziek.tv,natuur.tv,nederland.tv,nieuws.tv,ondernemen.tv,onrecht.tv,oranje.tv,politiek.tv,reis.tv,serie.tv,spelletjes.tv,sporten.tv,talentenjacht.tv,vaartuig.tv,verkiezing.tv,voertuig.tv,voetbal.tv,weer.tv,woon.tv##.adv-tekst
 filmtotaal.nl,hoimedia.com,intermediair.nl##.advert
 newsbit.nl##.advert-converting-bar
@@ -805,6 +805,7 @@ rallylovers.be##.advertentierechts
 autoweek.nl##.advertise
 1twente.nl,bnnvara.nl,elektormagazine.nl,fonkmagazine.nl,hpdetijd.nl,kieskeurig.nl,maassluis24.nl,nl24.nu,schiedam24.nl,tvgids.tv,twentefm.nl,zijaanzij.nl##.advertisement
 goodbye.be,sporza.be##.advertising
+automotive-online.nl##.advertistement
 albrandswaardsdagblad.nl,barendrechtsdagblad.nl,dagblad010.nl,dagblad070.nl,goudsdagblad.nl,ridderkerksdagblad.nl,rijswijksdagblad.nl,voorburgsdagblad.nl,zoetermeersdagblad.nl##.advrow
 geenstijl.nl##.afctr-wrapper
 wielerflits.be,wielerflits.nl##.affiliate_links
@@ -1474,44 +1475,43 @@ ah.nl##.product-card-portrait_root__ZiRpZ:has(.promotion_root__pAAlu)
 tvgids.nl##.square-item:has( > .banner)
 plus.nl##a[data-link]:has(.sponsored-product)
 agconnect.nl#?#.c-teaser:has(.c-pill--partner)
-delhaize.be#?#.product-item:-abp-contains(Gesponsord)
+delhaize.be#?#.product-item:contains(Gesponsord)
 androidplanet.nl##div[data-name="post"]:has(div[data-name="sponsor-logo"])
-krefel.be#?#div[class^="Flex-styled__StyledFlex-"]:has(h3:-abp-contains(Gesponsorde producten))
+krefel.be#?#div[class^="Flex-styled__StyledFlex-"]:has(h3:contains(Gesponsorde producten))
 bol.com##li.js_item_root:has(.dsa__list-padding)
-marktplaats.nl#?#.hz-Listing--list-item:-abp-contains(Topadvertentie)
+marktplaats.nl#?#.hz-Listing--list-item:contains(Topadvertentie)
 feijenoordnieuws.nl##.cv-table-left > a:not([target="_blank"]):not([rel="nofollow"]):not(a[href^="https://feijenoordnieuws.nl/"])
-2dehands.be#?#.hz-Listing--list-item:-abp-has(.hz-Listing-priority:-abp-contains(Topadvertentie))
+2dehands.be#?#.hz-Listing--list-item:has(.hz-Listing-priority:contains(Topadvertentie))
 mediamarkt.be,mediamarkt.nl##[data-test="mms-product-card"]:has(div[data-test="mms-plp-sponsored"])
-almere-nieuws.nl#?#.wpb_wrapper:has(.section-heading:-abp-contains(partners))
-amstelveensnieuwsblad.nl,baarnschecourant.nl,barneveldsekrant.nl,bennekomsnieuwsblad.nl,biltschecourant.nl,deputtenaer.nl,derijnpost.nl,destadamersfoort.nl,destadgorinchem.nl,dewoudenberger.nl,edestad.nl,ermelosweekblad.nl,harderwijkercourant.nl,hcnieuws.nl,hetkompashardinxveld-giessendam.nl,hetkompassliedrecht.nl,houtensnieuws.nl,huisaanhuiselburg.nl,huisaanhuisoldebroek.nl,leusderkrant.nl,nieuwsbladdekaap.nl,nunspeethuisaanhuis.nl,recreatiekrantveluwe.nl,regiosportveenendaal.nl,rijnenveluwe.nl,scherpenzeelsekrant.nl,soestercourant.nl,stadnijkerk.nl,stadwageningen.nl,weekbladvoorouderamstel.nl,wijksnieuws.nl#?#.component__plugin:has(h6:-abp-contains(advertentie))
-autobahn.eu#?#.d-none.d-md-block.mb-3:-abp-has(a[target="_blank"][rel="noopener"])
-bol.com#?#[data-bltgi*="ProductList_"]:-abp-contains(Gesponsord)
-buienradar.nl#?#.linklist:-abp-has(h1:-abp-contains(Lekker Dichtbij Deals))
-businessinsider.nl#?#.widget_custom_html:-abp-has(h2:-abp-contains(Beter Beleggen))
-duurzaamnieuws.nl#?#.avia_codeblock_section:-abp-contains(Duurzaamnieuws wordt mede mogelijk gemaakt door:)
-fonq.nl#?#[data-cy="plp-tile-container"]:-abp-contains(Gesponsord)
-fonq.nl#?#li:-abp-contains(Gesponsord)
-geenstijl.nl#?#.article.row.no-image:-abp-has(.row.compost-warn:-abp-contains(- ingezonden mededeling -))
-glutenvrij.nl#?#.Article__inner:has(.Article__title:-abp-contains(Advertentie))
-jumbo.com#?#[data-pathway-product-position]:-abp-contains(Gesponsord)
-linda.nl#?#.article-column_article:-abp-has(.category-label_label:-abp-contains(Advertorial))
-linda.nl#?#.article-row_article:-abp-has(.article-row_category.category-label_label:-abp-contains(Advertorial))
-mediamarkt.be,mediamarkt.nl#?#[data-index-number]:-abp-contains(Gesponsord)
-mnm.be#?#.grid-item.grid-item-pebble:-abp-has(#pebble-label:-abp-contains(Advertentie))
-moviemeter.nl#?#.footer-artikelen:has(.footer-h6:-abp-contains(Partners))
-nieuwsopbeeld.nl#?#.td_module_wrap:-abp-has(.td-post-category:-abp-contains(Gesponsord))
-psvinside.nl#?#.td_block_template_1:has(.block-title:-abp-contains(Partners))
-tijd.be#?#.o-hpgrid__row-tijdconnect:-abp-has(h2:-abp-contains(Gesponsorde inhoud))
-tostrams.nl#?#section.network:-abp-has(.contentheader.contentheader--network:-abp-contains(Gesponsorde links))
-tvvisie.be,tvvisie.nl#?#.side:-abp-contains(Aanbiedingen)
-vi.nl#?#.c-articles-list__item.c-articles-list__item--highlight:-abp-has(.c-tag.c-articles-list__label:-abp-contains(Advertorial))
-voetbalcentraal.nl#?#.blok:-abp-has(h3:-abp-contains(Partners))
-weer.nl#?#.shadow-lvl-2:-abp-has(a[href^="https://www.voordeeluitjes.nl/"])
-wielerflits.nl#?#.widget-container:-abp-has(.h3.mb-4:-abp-contains(Wielerdeals))
-wielerflits.nl#?#li.list-item.list-item-aside:-abp-has(.badge:-abp-contains(Ad))
-wielerflits.nl#?#li.list-item.list-item-default:-abp-has(span:-abp-contains(Ad))
-wintersport.nl#?#.mb-6:-abp-contains(gesponsord)
-wkdarts.nl#?#.wpb_wrapper:-abp-has(div:-abp-contains(#advertentie))
+almere-nieuws.nl#?#.wpb_wrapper:has(.section-heading:contains(partners))
+amstelveensnieuwsblad.nl,baarnschecourant.nl,barneveldsekrant.nl,bennekomsnieuwsblad.nl,biltschecourant.nl,deputtenaer.nl,derijnpost.nl,destadamersfoort.nl,destadgorinchem.nl,dewoudenberger.nl,edestad.nl,ermelosweekblad.nl,harderwijkercourant.nl,hcnieuws.nl,hetkompashardinxveld-giessendam.nl,hetkompassliedrecht.nl,houtensnieuws.nl,huisaanhuiselburg.nl,huisaanhuisoldebroek.nl,leusderkrant.nl,nieuwsbladdekaap.nl,nunspeethuisaanhuis.nl,recreatiekrantveluwe.nl,regiosportveenendaal.nl,rijnenveluwe.nl,scherpenzeelsekrant.nl,soestercourant.nl,stadnijkerk.nl,stadwageningen.nl,weekbladvoorouderamstel.nl,wijksnieuws.nl#?#.component__plugin:has(h6:contains(advertentie))
+autobahn.eu#?#.d-none.d-md-block.mb-3:has(a[target="_blank"][rel="noopener"])
+bol.com#?#[data-bltgi*="ProductList_"]:contains(Gesponsord)
+buienradar.nl#?#.linklist:has(h1:contains(Lekker Dichtbij Deals))
+businessinsider.nl#?#.widget_custom_html:has(h2:contains(Beter Beleggen))
+duurzaamnieuws.nl#?#.avia_codeblock_section:contains(Duurzaamnieuws wordt mede mogelijk gemaakt door:)
+fonq.nl#?#[data-cy="plp-tile-container"]:contains(Gesponsord)
+fonq.nl#?#li:contains(Gesponsord)
+geenstijl.nl#?#.article.row.no-image:has(.row.compost-warn:contains(- ingezonden mededeling -))
+glutenvrij.nl#?#.Article__inner:has(.Article__title:contains(Advertentie))
+jumbo.com#?#[data-pathway-product-position]:contains(Gesponsord)
+linda.nl#?#.article-column_article:has(.category-label_label:contains(Advertorial))
+linda.nl#?#.article-row_article:has(.article-row_category.category-label_label:contains(Advertorial))
+mediamarkt.be,mediamarkt.nl#?#[data-index-number]:contains(Gesponsord)
+mnm.be#?#.grid-item.grid-item-pebble:has(#pebble-label:contains(Advertentie))
+moviemeter.nl#?#.footer-artikelen:has(.footer-h6:contains(Partners))
+nieuwsopbeeld.nl#?#.td_module_wrap:has(.td-post-category:contains(Gesponsord))
+psvinside.nl#?#.td_block_template_1:has(.block-title:contains(Partners))
+tijd.be#?#.o-hpgrid__row-tijdconnect:has(h2:contains(Gesponsorde inhoud))
+tostrams.nl#?#section.network:has(.contentheader.contentheader--network:contains(Gesponsorde links))
+tvvisie.be,tvvisie.nl#?#.side:contains(Aanbiedingen)
+vi.nl#?#.c-articles-list__item.c-articles-list__item--highlight:has(.c-tag.c-articles-list__label:contains(Advertorial))
+voetbalcentraal.nl#?#.blok:has(h3:contains(Partners))
+weer.nl#?#.shadow-lvl-2:has(a[href^="https://www.voordeeluitjes.nl/"])
+wielerflits.nl#?#.widget-container:has(.h3.mb-4:contains(Wielerdeals))
+wielerflits.nl#?#li.list-item.list-item-aside:has(.badge:contains(Ad))
+wielerflits.nl#?#li.list-item.list-item-default:has(span:contains(Ad))
+wkdarts.nl#?#.wpb_wrapper:has(div:contains(#advertentie))
 bokt.nl#@#.ad-body
 gratisaftehalen.nl#@#.ads-image
 wereldklokken.nl#@#.adsbygoogle
@@ -1553,6 +1553,7 @@ vakantieplaats.nl#@#.topAds
 ! Bad: ||legitwebsite.com^$third-party (should be in adservers.txt)
 !
 !
+||h3v9p8x2q1r7-agckaeh6g2ehcaes.*.azurewebsites.net^
 ||x9t7g4m2qk2.azurewebsites.net^
 ||kjdsfjisdfjr23.azurewebsites.net^
 ||content2.nrc.nl^
@@ -1578,6 +1579,8 @@ vakantieplaats.nl#@#.topAds
 @@||content.hwigroup.net/images^$domain=hardware.info
 hardware.info,tweakers.net#@#.AdBar
 !
+! https://github.com/AdguardTeam/AdguardFilters/issues/216106
+webcams-vlissingen.nl#%#//scriptlet('abort-current-inline-script', 'document.createElement', 'adsbygoogle.js')
 ! https://github.com/AdguardTeam/AdguardFilters/issues/209339
 radio10.nl#%#//scriptlet('prevent-setTimeout', 'throw i(r+"err",[o,a,e],d,c),e}finally{i(', '50')
 ! https://github.com/AdguardTeam/AdguardFilters/issues/203606
@@ -1621,18 +1624,20 @@ kijk.nl#@##topbanner_ad
 @@/prebid/ad.gif?user=*&adId=$domain=kijk.nl
 @@||ads-talpa.adhese.com/json/$domain=kijk.nl
 kijk.nl#$#body .pub_300x250.pub_300x250m.pub_728x90.text-ad.textAd.text_ad.text_ads.text-ads.text-ad-links { display: initial !important; }
+! https://github.com/AdguardTeam/AdguardFilters/issues/215774
 ! https://github.com/AdguardTeam/AdguardFilters/issues/167987
-||securepubads.g.doubleclick.net/tag/js/gpt.js$script,redirect=googletagservices-gpt,domain=goplay.be
+||securepubads.g.doubleclick.net/tag/js/gpt.js$script,redirect=googletagservices-gpt,domain=goplay.be|play.tv
 ! https://github.com/AdguardTeam/AdguardFilters/issues/160901
-||pagead2.googlesyndication.com/omsdk/releases/live/omweb-v1.js$script,domain=goplay.be,redirect=noopjs
-@@||pubads.g.doubleclick.net/ondemand/*/content/*/vid/*/streams$domain=goplay.be
-||pubads.g.doubleclick.net/ondemand/*/content/*/vid/*/streams/*/time-events.json$important,domain=goplay.be
-goplay.be#%#//scriptlet('xml-prune', 'Period[id*="-ad-"]', '', '.mpd')
+||pagead2.googlesyndication.com/omsdk/releases/live/omweb-v1.js$script,domain=goplay.be|play.tv,redirect=noopjs
+@@||pubads.g.doubleclick.net/ondemand/*/content/*/vid/*/streams$domain=goplay.be|play.tv
+||pubads.g.doubleclick.net/ondemand/*/content/*/vid/*/streams/*/time-events.json$important,domain=goplay.be|play.tv
+||dai.google.com/ondemand/dash/content/*/time-events.json$domain=goplay.be|play.tv
+play.tv,goplay.be#%#//scriptlet('xml-prune', 'Period[id*="-ad-"]', '', '.mpd')
 ! https://github.com/AdguardTeam/AdguardFilters/issues/118874
-goplay.be#%#//scriptlet('prevent-fetch', 'pubads.g.doubleclick.net/gampad/ads')
-@@||imasdk.googleapis.com/js/sdkloader/ima3_dai.js$script,domain=goplay.be
-||imasdk.googleapis.com/js/sdkloader/ima3.js$script,redirect=noopjs,domain=goplay.be
-@@||pagead2.googlesyndication.com/omsdk/releases/live/omweb-v1.js$script,domain=goplay.be
+play.tv,goplay.be#%#//scriptlet('prevent-fetch', 'pubads.g.doubleclick.net/gampad/ads')
+@@||imasdk.googleapis.com/js/sdkloader/ima3_dai.js$script,domain=goplay.be|play.tv
+||imasdk.googleapis.com/js/sdkloader/ima3.js$script,redirect=noopjs,domain=goplay.be|play.tv
+@@||pagead2.googlesyndication.com/omsdk/releases/live/omweb-v1.js$script,domain=goplay.be|play.tv
 ! https://github.com/AdguardTeam/AdguardFilters/issues/74633
 ||goplay.be/js/sourcepoint/msg?v=
 ! https://github.com/AdguardTeam/AdguardFilters/issues/69783
@@ -1762,6 +1767,24 @@ omroepwest.nl#$#.adcontainer-Rectangle { position: absolute!important; left: -40
 ! Good: example.org###rek; ||example.com/ads/
 ! Bad: example.org#@##banner_ad (for instance, should be in allowlist.txt or in antiadblock.txt)
 !
+wielerrevue.nl##div[data-aa-adunit]
+wielerrevue.nl##main .bg-reserved
+wielerrevue.nl##.sticky-incontent
+f1maximaal.nl##div[style^="margin-top: 0px; min-height:"]:has(> div.ms-container)
+f1maximaal.nl##div[style^="margin-top:0px;min-height:"]:has(> div.ms-container)
+||service-api.nl/api/v2/ad?
+||gp33.nl/assets/common/ads-helper.js
+gp33.nl##div[id^="grandprix33_"]
+funda.nl##div[data-testid="halfpage-ad"]
+wintersport.nl##.wintersport-banner
+wintersport.nl##.row:has(> .col > .row--dense .v-chip__content)
+||azurewebsites.net/*?player_*[max_ad_dur]=*[adslot]=*&VPAID=
+moviemeter.nl##.small-leaderboard
+deondernemer.nl##div[class^="adBlock"]
+deondernemer.nl##section[class^="SingleBlock_advertisement"]
+||boodschappen.nl/wp-json/boodschappen/v1/banners/get_banners
+||boodschappen.nl/wp-json/boodschappen/v1/banners/get_advertorial
+||boodschappen.nl/wp-json/boodschappen/v1/banners/get_native_banner
 9292.nl##[data-testid="ad-root"]
 9292.nl##astro-island[component-export="Ad"]
 hbvl.be##section[data-theme-sponsored-content]
@@ -1817,7 +1840,6 @@ voetbalzone.nl##div[class^="ad-wrapper"]
 voetbalzone.nl##.fco-openweb-ad
 gptoday.net###gptoday_ros_foxtrot_rectangle-halfpage
 etos.nl##div[class^="gam-banner--"]
-npo.nl#%#//scriptlet('json-prune-fetch-response', 'assets.preroll assets.prerollDebug', '', '/stream-link')
 ||biernet.nl/site/plugins/bja_new/redirect.php
 biernet.nl##.bja-cont
 biernet.nl###ban_blok
@@ -2021,6 +2043,9 @@ klusidee.nl##td.td-ad
 !
 ! NOTE: Dutch - specific - HINTS
 !
+! https://github.com/AdguardTeam/AdguardFilters/issues/215616
+!+ NOT_PLATFORM(ext_ublock)
+bnnvara.nl,npo.nl,npodoc.nl,vpro.nl#%#//scriptlet('json-prune-fetch-response', 'assets.preroll assets.prerollDebug', '', '/stream-link')
 ! https://github.com/AdguardTeam/AdguardFilters/issues/10738
 !
 ! Special rules for AdGuard websites' test pages. The only purpose of these
@@ -2030,7 +2055,7 @@ klusidee.nl##td.td-ad
 !+ NOT_OPTIMIZED
 adguard.info,adguard.com,adguard.app##.hello_from_adguard_dutch
 ! Detect of using AdGuard products
-!+ NOT_PLATFORM(windows, mac, android, ios, ext_ublock) NOT_OPTIMIZED
+!+ NOT_PLATFORM(windows, mac, android, cli, ios, ext_ublock) NOT_OPTIMIZED
 adguard.info,adguard.com,adguard.app##.hello_from_adguard_ext
 ! Detect HTTPS filtering
 ! Detect Advanced Protection of AdGuard for iOS
@@ -2044,6 +2069,10 @@ adguard.info,adguard.com,adguard.app##.hello_from_adguard_ext
 ! Good: example.org#@#.ad
 ! Bad:  @@||example.org^$stealth (should be in AdGuard Base - allowlist_stealth.txt)
 !
+! https://github.com/AdguardTeam/AdguardFilters/issues/216470
+wintersport.nl#@?#.mb-6:contains(gesponsord)
+! https://github.com/AdguardTeam/AdguardFilters/issues/213830
+moviemeter.nl#%#//scriptlet('trusted-suppress-native-method', 'document.write', '"adswag.nl"', 'prevent')
 ! https://github.com/AdguardTeam/AdguardFilters/issues/210624
 puna.nl#@#.raw-html-component
 @@||2mdn.net/instream/html5/ima3.js$domain=puna.bbvms.com|puna.nl

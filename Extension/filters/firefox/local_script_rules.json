@@ -14,7 +14,15 @@
                 "restrictedDomains": []
             }
         ],
-        "(()=>{const c={construct:(c,o,r)=>{try{o[0]?.detectAdblock&&(o[0].detectAdblock=!1)}catch(c){}return Reflect.construct(c,o,r)}};window.Proxy=new Proxy(window.Proxy,c)})();": [
+        "(()=>{document.addEventListener(\"DOMContentLoaded\",(()=>{if(typeof $===\"function\"){var $player=$(\".player\");$player.html($player.html().replace(/<!--|-->/g,\"\"));}}));})();": [
+            {
+                "permittedDomains": [
+                    "cdntvpotok.com"
+                ],
+                "restrictedDomains": []
+            }
+        ],
+        "(()=>{const t=window.Map.prototype.values,a={apply:(a,e,p)=>{try{const a=Array.from(t.call(e))[0];(a?.parentElement?.matches(\".supbar\")||a?.matches?.(\".rotator\"))&&(e=new Map)}catch(t){}return Reflect.apply(a,e,p)}};window.Map.prototype.values=new Proxy(window.Map.prototype.values,a)})();": [
             {
                 "permittedDomains": [
                     "dtf.ru"
@@ -329,30 +337,6 @@
                 "restrictedDomains": []
             }
         ],
-        "(()=>{const t={apply:(t,e,r)=>{try{3===e.length&&e.every((t=>\"function\"==typeof t&&t.toString().includes(\"element:\")))&&(r[0]=()=>!1)}catch(t){}return Reflect.apply(t,e,r)}};window.Array.prototype.map=new Proxy(window.Array.prototype.map,t)})();": [
-            {
-                "permittedDomains": [
-                    "kio.ac"
-                ],
-                "restrictedDomains": []
-            }
-        ],
-        "(()=>{const e={apply:(e,o,t)=>{try{const e=o;e.length>0&&e.length<5&&\"object\"==typeof e[0]&&null!==e[0]&&Object.hasOwn(e[0],\"blocked\")&&(e.forEach((e=>{e&&\"object\"==typeof e&&Object.hasOwn(e,\"blocked\")&&(e.blocked=!1)})),o=e)}catch(e){}return Reflect.apply(e,o,t)}};window.Array.prototype.some=new Proxy(window.Array.prototype.some,e)})();": [
-            {
-                "permittedDomains": [
-                    "kio.ac"
-                ],
-                "restrictedDomains": []
-            }
-        ],
-        "(()=>{const n={construct:(n,o,t)=>{const c=o[0];return\"function\"==typeof c&&c.toString().includes(\"(){Date.now()>=\")&&(o[0]=()=>{}),Reflect.construct(n,o,t)}};window.Promise=new Proxy(window.Promise,n)})();": [
-            {
-                "permittedDomains": [
-                    "kio.ac"
-                ],
-                "restrictedDomains": []
-            }
-        ],
         "(()=>{const a=function(a){\"function\"==typeof a&&a()};window.aiptag={adplayer:\"\",cmd:[]},window.aiptag.cmd.player=[],window.aiptag.cmd.display=[],window.aiptag.cmd.push=a,window.aiptag.cmd.player.push=a,window.aiptag.cmd.display.push=a,window.aipDisplayTag={display:function(){}},window.aipPlayer=function(a){a&&a.AIP_COMPLETE&&(this.startPreRoll=a.AIP_COMPLETE)}})();": [
             {
                 "permittedDomains": [
@@ -361,10 +345,26 @@
                 "restrictedDomains": []
             }
         ],
+        "((e=\"\",t=\"\",o=\"basic\",s=\"\",n)=>{const r={apply:(r,a,u)=>{try{let r=\"\";const a=u[0],c=u[1]?.method||\"\";let l=!1;if(\"string\"==typeof a&&a.includes(e)&&c.toLowerCase()===t.toLowerCase()?(r=a,l=!0):a instanceof Request&&a.url.includes(e)&&a.method.toLowerCase()===t.toLowerCase()&&(r=a.url,l=!0),l){const e=((e,t)=>{try{if(void 0===e||\"cors\"===e||\"no-cors\"===e)return new URL(t).origin===document.location.origin?\"basic\":\"no-cors\"===e?\"opaque\":\"cors\"}catch(e){}})(o,r),t=((e,t)=>{const o=e||\"\",n=new Response(s,{headers:{\"Content-Length\":`${s.length}`},status:200,statusText:\"OK\"});return\"opaque\"===t?Object.defineProperties(n,{body:{value:null},status:{value:0},ok:{value:!1},statusText:{value:\"\"},url:{value:\"\"},type:{value:t}}):Object.defineProperties(n,{url:{value:o},type:{value:t}}),n})(r,e);return n?new Promise((e=>{setTimeout((()=>{e(t)}),n)})):Promise.resolve(t)}}catch(e){}return Reflect.apply(r,a,u)}};window.fetch=new Proxy(window.fetch,r)})(\"https://googleads.g.doubleclick.net/pagead/ads?client=ca-pub-3497863494706299\",\"HEAD\",\"no-cors\",\"\",121);": [
+            {
+                "permittedDomains": [
+                    "pvpoke-re.com"
+                ],
+                "restrictedDomains": []
+            }
+        ],
         "(()=>{const e={breakStatus:\"done\"},o=[\"beforeReward\",\"adViewed\",\"adBreakDone\"];window.adsbygoogle=window.adsbygoogle||[],window.adsbygoogle.push=function(d){var a;d&&\"object\"==typeof d&&(a=d,o.every((e=>e in a&&\"function\"==typeof a[e])))&&(d.beforeReward(),d.adViewed(),d.adBreakDone(e))}})();": [
             {
                 "permittedDomains": [
                     "noice.com"
+                ],
+                "restrictedDomains": []
+            }
+        ],
+        "(()=>{const r={apply:(r,e,t)=>{try{const r=(new Error).stack,e=t[0];if(r.includes(\"adBlockingDetected\")&&e?.adFailurePercentage)return 0}catch(r){}return Reflect.apply(r,e,t)}};window.Array.prototype.push=new Proxy(window.Array.prototype.push,r)})();": [
+            {
+                "permittedDomains": [
+                    "itv.com"
                 ],
                 "restrictedDomains": []
             }
@@ -601,6 +601,15 @@
                 "restrictedDomains": []
             }
         ],
+        "(()=>{const t={apply:(t,e,o)=>{try{const t=e,o=t?.[0];t&&t.length>0&&t.length<10&&\"string\"==typeof o&&o?.includes?.(\"-bait-\")&&(e=[])}catch(t){}return Reflect.apply(t,e,o)}};window.Array.prototype.some=new Proxy(window.Array.prototype.some,t)})();": [
+            {
+                "permittedDomains": [
+                    "10.com.au",
+                    "10play.com.au"
+                ],
+                "restrictedDomains": []
+            }
+        ],
         "!function(){window.adsbygoogle={loaded:!0,push:function(){\"undefined\"===typeof this.length&&(this.length=0,this.length+=1)}}}();": [
             {
                 "permittedDomains": [
@@ -617,11 +626,72 @@
                 "restrictedDomains": []
             }
         ],
+        "(()=>{const e=Object.getOwnPropertyDescriptor(Element.prototype,\"innerHTML\").set,t=Object.getOwnPropertyDescriptor(Element.prototype,\"innerHTML\").get;Object.defineProperty(Element.prototype,\"innerHTML\",{get(){return t.call(this)},set(t){if(t?.includes?.(\"disable your adblocker\"))throw new Error;e.call(this,t)}})})();": [
+            {
+                "permittedDomains": [
+                    "tapepops.com",
+                    "watchadsontape.com",
+                    "advertisertape.com",
+                    "tapeadvertisement.com",
+                    "adblockplustape.xyz",
+                    "tapelovesads.org",
+                    "gettapeads.com",
+                    "tapeadsenjoyer.com",
+                    "noblocktape.com",
+                    "antiadtape.com",
+                    "tapewithadblock.org",
+                    "streamadblocker.*",
+                    "strtape.cloud",
+                    "adblockeronstape.me",
+                    "streamadblockplus.com",
+                    "shavetape.*",
+                    "adblockstrtape.link",
+                    "adblockstrtech.link",
+                    "adblockstreamtape.*",
+                    "stape.fun",
+                    "strcloud.link",
+                    "streamtape.*",
+                    "streamtape.com"
+                ],
+                "restrictedDomains": []
+            }
+        ],
         "(()=>{const e={apply:(e,o,t)=>(null===t[0]&&(t[0]={isUserSubscriber:!0}),Reflect.apply(e,o,t))},o={apply:(o,t,n)=>{const r=n[0];return\"function\"==typeof r&&r.toString().includes(\"AdBlockDetector\")&&(n[0]=()=>{}),\"function\"==typeof r&&r.toString().includes(\"Preroll Ad\")&&(n[0]=new Proxy(n[0],e)),Reflect.apply(o,t,n)}};window.Promise.prototype.then=new Proxy(window.Promise.prototype.then,o)})();": [
             {
                 "permittedDomains": [
                     "zone.msn.com",
                     "arkadium.com"
+                ],
+                "restrictedDomains": []
+            }
+        ],
+        "(()=>{const e=Object.getOwnPropertyDescriptor(Element.prototype,\"innerHTML\").set,t=Object.getOwnPropertyDescriptor(Element.prototype,\"innerHTML\").get;Object.defineProperty(Element.prototype,\"innerHTML\",{get(){return t.call(this)},set(t){if(t?.includes?.(\"allow adblock\"))throw new Error;e.call(this,t)}})})();": [
+            {
+                "permittedDomains": [
+                    "myvidplay.com",
+                    "dsvplay.com",
+                    "vide0.net",
+                    "do7go.com",
+                    "dooodster.com",
+                    "dood.sh",
+                    "dood.li",
+                    "d000d.com",
+                    "d0000d.com",
+                    "do0od.com",
+                    "ds2play.com",
+                    "doods.pro",
+                    "dooood.com",
+                    "dvdgayonline.com",
+                    "fxggxt.com",
+                    "dood.yt",
+                    "dood.re",
+                    "dood.wf",
+                    "dood.la",
+                    "dood.pm",
+                    "dood.so",
+                    "dood.to",
+                    "dood.watch",
+                    "dood.ws"
                 ],
                 "restrictedDomains": []
             }
@@ -1007,22 +1077,6 @@
                 "restrictedDomains": []
             }
         ],
-        "window.my_random_number = 1;": [
-            {
-                "permittedDomains": [
-                    "calciomercato.com"
-                ],
-                "restrictedDomains": []
-            }
-        ],
-        "(function(){var b=window.setTimeout;window.setTimeout=function(a,c){if(!/\\[_0x/.test(a.toString()))return b(a,c)};})();": [
-            {
-                "permittedDomains": [
-                    "calciomercato.com"
-                ],
-                "restrictedDomains": []
-            }
-        ],
         "(()=>{window.com_adswizz_synchro_decorateUrl=(a)=>a;})();": [
             {
                 "permittedDomains": [
@@ -1146,9 +1200,10 @@
                 "restrictedDomains": []
             }
         ],
-        "(()=>{Object.defineProperty=new Proxy(Object.defineProperty,{apply:(e,t,n)=>{const r=new Set([\"VP\",\"w3\",\"JW\"]),o=n[1],c=n[2]?.get;return o&&r.has(o)&&\"function\"==typeof c&&/^\\(\\)=>.$/.test(c.toString())&&(n[2].get=function(){return function(){return!1}}),Reflect.apply(e,t,n)}});})();": [
+        "(()=>{const t=new Set([\"VP\",\"w3\",\"JW\"]),e=/\\{return\\(.{1,5}\\)\\(\\)===.\\..\\}/,n={apply:(t,n,r)=>{if(\"function\"!=typeof t)return Reflect.apply(t,n,r);const p=t.toString();return e.test(p)&&(t=function(){return!1}),Reflect.apply(t,n,r)}},r={apply:(t,e,r)=>{let p=Reflect.apply(t,e,r);return\"function\"==typeof p&&(p=new Proxy(p,n)),p}},p={apply:(e,n,p)=>{try{const o=p[1],c=p[2]?.get;if(!o||\"function\"!=typeof c)return Reflect.apply(e,n,p);t.has(o)&&/^\\(\\)=>.$/.test(c.toString())?p[2].get=function(){return function(){return!1}}:\"A\"===o&&c.toString().includes(\"()=>i\")&&(p[2].get=new Proxy(p[2].get,r))}catch(t){}return Reflect.apply(e,n,p)}};Object.defineProperty=new Proxy(Object.defineProperty,p)})();": [
             {
                 "permittedDomains": [
+                    "jastrzabpost.pl",
                     "wirtualnemedia.pl",
                     "open.fm",
                     "deliciousmagazine.pl",
@@ -1227,6 +1282,26 @@
             {
                 "permittedDomains": [
                     "freedisc.pl"
+                ],
+                "restrictedDomains": []
+            }
+        ],
+        "(()=>{const t={apply:(t,e,o)=>{try{const t=e;t&&\"object\"==typeof t&&t.context?.bidRequestId&&(e={})}catch(t){}return Reflect.apply(t,e,o)}};window.Object.prototype.hasOwnProperty=new Proxy(window.Object.prototype.hasOwnProperty,t)})();": [
+            {
+                "permittedDomains": [
+                    "historiapoznania.pl",
+                    "wirtualnemedia.pl",
+                    "pcformat.pl",
+                    "pudelek.pl",
+                    "abczdrowie.pl",
+                    "pysznosci.pl",
+                    "o2.pl",
+                    "autokult.pl",
+                    "jastrzabpost.pl",
+                    "genialne.pl",
+                    "polygamia.pl",
+                    "money.pl",
+                    "wp.pl"
                 ],
                 "restrictedDomains": []
             }
@@ -1372,7 +1447,7 @@
                 "restrictedDomains": []
             }
         ],
-        "((e,t)=>{const p={apply:(p,o,n)=>{if(n[0]&&n[1]&&n[1].includes(t)){const t=new URL(n[1]);t.searchParams.delete(e),n[1]=t.href.replace(\"%2CCuepointPlaylist\",\"\")}return Reflect.apply(p,o,n)}};window.XMLHttpRequest.prototype.open=new Proxy(window.XMLHttpRequest.prototype.open,p)})(\"deviceAdInsertionTypeOverride\",\"/GetPlaybackResources?\");": [
+        "(()=>{let t=!1;const e=window.setTimeout,n={apply:(n,o,c)=>{try{c[0]?.toString?.().includes(\"thisArg.dispatchEvent\")&&(t=!0,e((()=>{t=!1}),50))}catch(t){}return Reflect.apply(n,o,c)}};window.setTimeout=new Proxy(window.setTimeout,n);const o=new Set([\"readystatechange\",\"load\",\"loadend\"]),c={construct:(e,n,c)=>{try{const e=n[0];if(t&&o.has(e)&&location.href.includes(\"/video/\"))return new ProgressEvent(e)}catch(t){}return Reflect.construct(e,n,c)}};window.Event=new Proxy(window.Event,c)})();": [
             {
                 "permittedDomains": [
                     "primevideo.com",
@@ -1382,10 +1457,16 @@
                     "amazon.com"
                 ],
                 "restrictedDomains": []
-            },
+            }
+        ],
+        "((e,t)=>{const n={apply:(n,o,r)=>{try{const s=r[1];if(!s)return Reflect.apply(n,o,r);const c=typeof s;if(\"string\"===c&&s.includes?.(t)){const t=new URL(s);t.searchParams.delete(e);const n=t.href.replace(\"%2CCuepointPlaylist\",\"\");r[1]=n}else if(\"object\"===c&&s instanceof URL&&s.href?.includes?.(t)){s.searchParams.delete(e);const t=s.href.replace(\"%2CCuepointPlaylist\",\"\");r[1]=t}}catch(e){}return Reflect.apply(n,o,r)}};window.XMLHttpRequest.prototype.open=new Proxy(window.XMLHttpRequest.prototype.open,n)})(\"deviceAdInsertionTypeOverride\",\"/GetPlaybackResources?\");": [
             {
                 "permittedDomains": [
-                    "amazon.*"
+                    "primevideo.com",
+                    "amazon.co.uk",
+                    "amazon.de",
+                    "amazon.co.jp",
+                    "amazon.com"
                 ],
                 "restrictedDomains": []
             }
@@ -1407,7 +1488,7 @@
                 "restrictedDomains": []
             }
         ],
-        "(()=>{const e=new Event(\"resize\");window.addEventListener(\"load\",(()=>{const t=document.querySelector(\".flexrow.app > div\");(0===localStorage.length||void 0===JSON.parse(localStorage._ppp)[\"0_uid\"])&&t&&t.clientWidth<window.innerWidth&&(Object.defineProperty(window,\"innerWidth\",{get:()=>document.documentElement.offsetWidth+320}),window.dispatchEvent(e))}))})();": [
+        "(()=>{const e=new Event(\"resize\");window.addEventListener(\"load\",(()=>{const t=document.querySelector(\".flexrow.app > div\");(0===localStorage.length||void 0===JSON.parse(localStorage._ppp)[\"0_uid\"])&&t&&t.clientWidth<window.innerWidth&&(Object.defineProperty(window,\"innerWidth\",{get:()=>document.documentElement.offsetWidth+315}),window.dispatchEvent(e))}))})();": [
             {
                 "permittedDomains": [
                     "photopea.com"
@@ -1420,14 +1501,6 @@
                 "permittedDomains": [
                     "minefun.io",
                     "poki.com"
-                ],
-                "restrictedDomains": []
-            }
-        ],
-        "(()=>{const e=document.documentElement;new MutationObserver((()=>{const e=document.querySelector(\".skeleton-video-cover-noanimate > .relative > a[href] + button\");e&&e.click()})).observe(e,{attributes:!0,childList:!0,subtree:!0})})();": [
-            {
-                "permittedDomains": [
-                    "hentaidna.tv"
                 ],
                 "restrictedDomains": []
             }
@@ -1537,6 +1610,16 @@
                     "sportbible.com",
                     "unilad.com",
                     "tyla.com"
+                ],
+                "restrictedDomains": []
+            }
+        ],
+        "(()=>{const e={apply:(e,t,l)=>{if(!t.matches('a[href][target=\"_blank\"]'))return Reflect.apply(e,t,l)}};window.HTMLElement.prototype.click=new Proxy(window.HTMLElement.prototype.click,e)})();": [
+            {
+                "permittedDomains": [
+                    "vidmoly.me",
+                    "vidmoly.net",
+                    "vidmoly.to"
                 ],
                 "restrictedDomains": []
             }
@@ -1888,7 +1971,7 @@
                 "restrictedDomains": []
             }
         ],
-        "!function(){var b=0,d=[];new MutationObserver(function(){document.querySelectorAll(\"div[data-pagelet^=\\\"FeedUnit\\\"]:not([style*=\\\"display: none\\\"]), div[role=\\\"feed\\\"] > div:not([style*=\\\"display: none\\\"]), div[role=\\\"feed\\\"] > span:not([style*=\\\"display: none\\\"]), #ssrb_feed_start + div > div[class]:not([style*=\\\"display: none\\\"]), #ssrb_feed_start + div span > h3 ~ div[class]:not([style*=\\\"display: none\\\"]), #ssrb_feed_start + div h3~ div[class]:not([style*=\\\"display: none\\\"]), #ssrb_feed_start + div h3 ~ div > div[class]:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div[class] > #ssrb_feed_start ~ div > h3 ~ div > div[class]:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > h3 ~ div > div[class]:not([style*=\\\"display: none\\\"]), #ssrb_feed_start + div > div > div[class]:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > h2 ~ div > div[class]:not([style*=\\\"display: none\\\"]), #ssrb_feed_start + div > div > div[class] > div:not([class], [id]) div:not([class], [id]):not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > h3 ~ div > div[class] > div:not([class], [id]) div:not([class], [id], [dir], [data-0], [style]), div[role=\\\"main\\\"] div > h2 ~ div > div[class] > div > div:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] h3[dir=\\\"auto\\\"] + div > div[class]:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > h2 ~ div > div[class] > div > div:not([style*=\\\"display: none\\\"]) > div:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > h2 ~ div > div > div > div:not([style*=\\\"display: none\\\"]) > div:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > h3 ~ div > div > div > div:not([style*=\\\"display: none\\\"]) > div:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > :is(h2, h3) ~ div > * div[class] > div > div:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > :is(h2, h3) ~ div > * > div > div[class]:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > :is(h2, h3) ~ div > * > div > div > span > div:not([style*=\\\"display: none\\\"])\").forEach(function(e){Object.keys(e).forEach(function(a){if(a.includes?.(\"__reactEvents\")||a.includes?.(\"__reactProps\")){a=e[a];try{if(a.children?.props?.category?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.category?.includes(\"SPONSORED\")||a.children?.props?.feedEdge?.category?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.feedEdge?.category?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.feedEdge?.category?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.category?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.feed_story_category?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.story_category?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.story_cat?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.category_sensitive?.cat?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.node?.sponsored_data?.brs_filter_setting||a.children?.props?.children?.props?.children?.props?.children?.props?.feedUnit?.lbl_sp_data?.ad_id||a.children?.props?.children?.props?.minGapType?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.node?.sponsored_data?.brs_filter_setting||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.node?.spons_data?.brs_filter_setting||a.children?.props?.children?.props?.feedEdge?.cat_sensitive?.cat?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.feedEdge?.node?.sponso_dat_flag?.brs_filter_setting||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.node?.sponso_dat_flag?.brs_filter_setting||a.children?.props?.children?.props?.children?.props?.children?.props?.minGapType?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.cat_sensitive?.cat?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.category?.includes(\"SPONSORED\")){b++,e.style=\"display: none !important;\";var f=e.querySelector(\"a[href][aria-label]:not([aria-hidden])\");f&&(d.push([\"Ad blocked based on property [\"+b+\"] -> \"+f.ariaLabel]),console.table(d))}}catch(a){}}})})}).observe(document,{childList:!0,subtree:!0})}();": [
+        "!function(){var b=0,d=[];new MutationObserver(function(){document.querySelectorAll(\"div[data-pagelet^=\\\"FeedUnit\\\"]:not([style*=\\\"display: none\\\"]), div[role=\\\"feed\\\"] > div:not([style*=\\\"display: none\\\"]), div[role=\\\"feed\\\"] > span:not([style*=\\\"display: none\\\"]), #ssrb_feed_start + div > div[class]:not([style*=\\\"display: none\\\"]), #ssrb_feed_start + div span > h3 ~ div[class]:not([style*=\\\"display: none\\\"]), #ssrb_feed_start + div h3~ div[class]:not([style*=\\\"display: none\\\"]), #ssrb_feed_start + div h3 ~ div > div[class]:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div[class] > #ssrb_feed_start ~ div > h3 ~ div > div[class]:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > h3 ~ div > div[class]:not([style*=\\\"display: none\\\"]), #ssrb_feed_start + div > div > div[class]:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > h2 ~ div > div[class]:not([style*=\\\"display: none\\\"]), #ssrb_feed_start + div > div > div[class] > div:not([class], [id]) div:not([class], [id]):not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > h3 ~ div > div[class] > div:not([class], [id]) div:not([class], [id], [dir], [data-0], [style]), div[role=\\\"main\\\"] div > h2 ~ div > div[class] > div > div:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] h3[dir=\\\"auto\\\"] + div > div[class]:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > h2 ~ div > div[class] > div > div:not([style*=\\\"display: none\\\"]) > div:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > h2 ~ div > div > div > div:not([style*=\\\"display: none\\\"]) > div:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > h3 ~ div > div > div > div:not([style*=\\\"display: none\\\"]) > div:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > :is(h2, h3) ~ div > * div[class] > div > div:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > :is(h2, h3) ~ div > * > div > div[class]:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > :is(h2, h3) ~ div > * > div > div > span > div:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > :is(h2, h3) ~ div > * > div div span > div:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > :is(h2, h3) ~ div > * > div div span > div > div:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > :is(h2, h3) ~ div > * > div span > div:not([style*=\\\"display: none\\\"]), div[role=\\\"main\\\"] div > :is(h2, h3) ~ div > * > div span div[class=\\\"\\\"]:not([style*=\\\"display: none\\\"]), div:not([class],[id]) div:not([class],[id]) > [class]:not([style*=\\\"display: none\\\"],img,div,h3,span,a), div[role=\\\"main\\\"] h3 + div[aria-hidden] + div > * > *:not(div,[style*=\\\"display: none\\\"]),div[role=\\\"main\\\"] h3 + div[aria-hidden] + div > div:not([style*=\\\"display: none\\\"])\").forEach(function(e){Object.keys(e).forEach(function(a){if(a.includes?.(\"__reactEvents\")||a.includes?.(\"__reactProps\")){a=e[a];try{if(a.children?.props?.category?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.category?.includes(\"SPONSORED\")||a.children?.props?.feedEdge?.category?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.feedEdge?.category?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.feedEdge?.category?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.category?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.feed_story_category?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.story_category?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.story_cat?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.category_sensitive?.cat?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.node?.sponsored_data?.brs_filter_setting||a.children?.props?.children?.props?.children?.props?.children?.props?.feedUnit?.lbl_sp_data?.ad_id||a.children?.props?.children?.props?.minGapType?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.node?.sponsored_data?.brs_filter_setting||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.node?.spons_data?.brs_filter_setting||a.children?.props?.children?.props?.feedEdge?.cat_sensitive?.cat?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.feedEdge?.node?.sponso_dat_flag?.brs_filter_setting||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.node?.sponso_dat_flag?.brs_filter_setting||a.children?.props?.children?.props?.children?.props?.children?.props?.minGapType?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.cat_sensitive?.cat?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.category?.includes(\"SPONSORED\")||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.__fragments?.useCometFeedUnitReordering_newsFeedEdge?.node?.daspo_sto?.brs_filter_setting||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.new_sponsorw_distn_aucton_of||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.node?.daspo_sto?.brs_filter_setting||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.node?.daspo_sto?.brs_filter_setting||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.node?.daspo_sto?.brs_filter_setting||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.node?.daspo_sto?.brs_filter_setting||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.node?.da_the_spons?.brs_filter_setting||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.node?.sponsore_da?.brs_filter_setting||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.node?.spons_the_dat?.brs_filter_setting||a.children?.props?.children?.props?.children?.props?.children?.props?.children?.props?.feedEdge?.node?.th_dat_spo?.brs_filter_setting){b++,e.style=\"display: none !important;\";var f=e.querySelector(\"a[href][aria-label]:not([aria-hidden])\");f&&(d.push([\"Ad blocked based on property [\"+b+\"] -> \"+f.ariaLabel]),console.table(d))}}catch(a){}}})})}).observe(document,{childList:!0,subtree:!0})}();": [
             {
                 "permittedDomains": [
                     "facebook.com",
@@ -1897,7 +1980,7 @@
                 "restrictedDomains": []
             }
         ],
-        "(()=>{const e=new MutationObserver((()=>{const n=document.querySelectorAll('div[role=\"complementary\"] div[class*=\" \"] > div[class] > div:not([class]) > div:not([class], [style*=\"display: none\"]), div[role=\"complementary\"] div[class*=\" \"] > div[class] > div:not([class]) > span[class] > div[class]:not([style*=\"display: none\"]), div[role=\"complementary\"] div:has(+ div[data-visualcompletion]) > div:not([style*=\"display: none\"])');for(const s of n){const n=Object.keys(s).find((e=>e.includes(\"__reactFiber\")));if(n){const t=s[n];if(t?.pendingProps?.children?.props?.match?.__fragmentPropName?.includes(\"adsSideFeedUnit\"))return s.style.display=\"none\",void e.disconnect()}}}));e.observe(document.documentElement,{childList:!0,subtree:!0})})();": [
+        "(()=>{const e=new MutationObserver((()=>{const n=document.querySelectorAll('div[role=\"complementary\"] div[class*=\" \"] > div[class] > div:not([class]) > div:not([class], [style*=\"display: none\"]), div[role=\"complementary\"] div[class*=\" \"] > div[class] > div:not([class]) > span[class] > div[class]:not([style*=\"display: none\"]), div[role=\"complementary\"] div:has(+ div[data-visualcompletion]) > div:not([style*=\"display: none\"]), div[role=\"complementary\"] > div[class] > div[class] > div[class] > div[class] > div > div:not([style*=\"display: none\"]),div[role=\"complementary\"] > div[class] > div[class] > div[class] > div[class] > div > div > div:not([style*=\"display: none\"])');for(const s of n){const n=Object.keys(s).find((e=>e.includes(\"__reactFiber\")));if(n){const t=s[n];if(t?.pendingProps?.children?.props?.match?.__fragmentPropName?.includes(\"adsSideFeedUnit\"))return s.style.display=\"none\",void e.disconnect()}}}));e.observe(document.documentElement,{childList:!0,subtree:!0})})();": [
             {
                 "permittedDomains": [
                     "facebook.com",
@@ -2103,9 +2186,48 @@
                 "restrictedDomains": []
             }
         ],
-        "(()=>{const e=\"loader.min.js\",t={includes:String.prototype.includes,filter:Array.prototype.filter},l=()=>(new Error).stack,n={construct:(n,o,r)=>{const c=l();return t.includes.call(c,e)&&o[0]&&t.includes.call(o[0],\"adshield\")&&(o[0]=[\"(function(){})();\"]),Reflect.construct(n,o,r)}};window.Blob=new Proxy(window.Blob,n);const o={apply:(n,o,r)=>{const c=l();return t.includes.call(c,e)&&r[0]&&t.includes.call(r[0],\"new Error\")&&(r[0]=()=>{}),Reflect.apply(n,o,r)}};window.setTimeout=new Proxy(window.setTimeout,o);const r={apply:(n,o,r)=>{const c=l();return t.includes.call(c,e)&&r[0]&&o?.includes?.(\"setTimeout\")&&(o=t.filter.call(o,(e=>!t.includes.call(e,\"setTimeout\")))),Reflect.apply(n,o,r)}};window.Array.prototype.filter=new Proxy(window.Array.prototype.filter,r)})();": [
+        "(()=>{const e={includes:String.prototype.includes,filter:Array.prototype.filter},t=()=>(new Error).stack,l=t=>e.includes.call(t,\"loader.min.js\")||e.includes.call(t,\"andwonderful.com/safe.min.js\"),n={construct:(n,o,r)=>{const c=t();return l(c)&&o[0]&&e.includes.call(o[0],\"adshield\")&&(o[0]=[\"(function(){})();\"]),Reflect.construct(n,o,r)}};window.Blob=new Proxy(window.Blob,n);const o={apply:(n,o,r)=>{const c=t();return l(c)&&r[0]&&e.includes.call(r[0],\"new Error\")&&(r[0]=()=>{}),Reflect.apply(n,o,r)}};window.setTimeout=new Proxy(window.setTimeout,o);const r={apply:(n,o,r)=>{const c=t();return l(c)&&r[0]&&o?.includes?.(\"setTimeout\")&&(o=e.filter.call(o,(t=>!e.includes.call(t,\"setTimeout\")))),Reflect.apply(n,o,r)}};window.Array.prototype.filter=new Proxy(window.Array.prototype.filter,r)})();": [
             {
                 "permittedDomains": [
+                    "madaboutfood.co",
+                    "galonamission.com",
+                    "iheartnaptime.net",
+                    "momontimeout.com",
+                    "31daily.com",
+                    "easydessertrecipes.com",
+                    "scribd.com",
+                    "dessertsonadime.com",
+                    "skinnytaste.com",
+                    "thehomesteadinghippy.com",
+                    "gigafile.nu",
+                    "trilltrill.jp",
+                    "intoindiegames.com",
+                    "liveandletsfly.com",
+                    "traicy.com",
+                    "stuckonsweet.com",
+                    "worldhistory.org",
+                    "kuruma-news.jp",
+                    "1lumen.com",
+                    "bluearchive.gg",
+                    "ttforum.co.uk",
+                    "newatlas.com",
+                    "game8.jp",
+                    "motorradfrage.net",
+                    "sportlerfrage.net",
+                    "finanzfrage.net",
+                    "reisefrage.net",
+                    "gesundheitsfrage.net",
+                    "computerfrage.net",
+                    "autofrage.net",
+                    "wholesomeyum.com",
+                    "gutefrage.net",
+                    "sportico.com",
+                    "wwd.com",
+                    "neoseeker.com",
+                    "yahoo.com",
+                    "doviz.com",
+                    "baseballchannel.jp",
+                    "programme-tv.net",
                     "tz.de",
                     "ygosu.com",
                     "etoday.co.kr",
@@ -2143,7 +2265,7 @@
                 "restrictedDomains": []
             }
         ],
-        "(()=>{const e={construct:(e,t,c)=>{try{const n=t[0];let r=t[1]?.body;if(!n?.includes(\"youtubei\")||location.href.includes(\"/shorts/\")||!r)return Reflect.construct(e,t,c);if((r.includes('\"contentPlaybackContext\"')||r.includes('\"adSignalsInfo\"'))&&(!r.includes('\"params\":\"yAEB')||!r.includes('\"clientScreen\":\"ADUNIT\"'))){const n=JSON.parse(r);if(!n.context?.client)return Reflect.construct(e,t,c);n.context.client.clientScreen=\"ADUNIT\",n.playbackContext&&(n.params=`yAEB${n.params?n.params:\"\"}`),n.playerRequest&&(n.playerRequest.params=`yAEB${n.playerRequest.params?n.playerRequest.params:\"\"}`),r=JSON.stringify(n),t[1].body=r}}catch(e){console.trace(\"Error occurred:\",e)}return Reflect.construct(e,t,c)}};window.Request=new Proxy(window.Request,e)})();": [
+        "(()=>{const t={construct:(t,e,c)=>{try{const n=e[0];let o=e[1]?.body;if(!n?.includes(\"youtubei\")||location.href.includes(\"/shorts/\")||location.href.includes(\"youtube.com/tv\")||location.href.includes(\"youtube.com/embed/\")||!o)return Reflect.construct(t,e,c);if(o.includes('\"contentPlaybackContext\"')||o.includes('\"adSignalsInfo\"')){const n=JSON.parse(o);if(!n.context?.client)return Reflect.construct(t,e,c);n.playbackContext&&(n.playbackContext.adPlaybackContext={pyv:!0}),n.playerRequest&&(n.playerRequest.playbackContext.adPlaybackContext={pyv:!0}),o=JSON.stringify(n),e[1].body=o}}catch(t){}return Reflect.construct(t,e,c)}};window.Request=new Proxy(window.Request,t)})();": [
             {
                 "permittedDomains": [
                     "www.youtube.com"
@@ -2151,7 +2273,7 @@
                 "restrictedDomains": []
             }
         ],
-        "(()=>{const e={apply:(e,r,t)=>{if(location.href.includes(\"/shorts/\"))return Reflect.apply(e,r,t);try{const a=t[0];if(!a?.context?.client)return Reflect.apply(e,r,t);a.context.client.clientScreen=\"ADUNIT\",a.playbackContext&&(a.params=`yAEB${a.params?a.params:\"\"}`),a.playerRequest&&(a.playerRequest.params=`yAEB${a.playerRequest.params?a.playerRequest.params:\"\"}`),t[0]=a}catch(e){console.trace(\"Error occurred:\",e)}return Reflect.apply(e,r,t)}};window.JSON.stringify=new Proxy(window.JSON.stringify,e)})();": [
+        "(()=>{const e={apply:(e,t,n)=>{if(location.href.includes(\"/shorts/\")||location.href.includes(\"youtube.com/tv\")||location.href.includes(\"youtube.com/embed/\"))return Reflect.apply(e,t,n);try{let o=n[0];if(o&&(o.includes('\"contentPlaybackContext\"')||o.includes('\"adSignalsInfo\"'))){const c=JSON.parse(o);if(!c.context?.client)return Reflect.apply(e,t,n);c.playbackContext&&(c.playbackContext.adPlaybackContext={pyv:!0}),c.playerRequest&&(c.playerRequest.playbackContext.adPlaybackContext={pyv:!0}),o=JSON.stringify(c),n[0]=o}}catch(e){}return Reflect.apply(e,t,n)}};window.TextEncoder.prototype.encode=new Proxy(window.TextEncoder.prototype.encode,e)})();": [
             {
                 "permittedDomains": [
                     "www.youtube.com"
@@ -2159,10 +2281,26 @@
                 "restrictedDomains": []
             }
         ],
-        "(()=>{window.JSON.parse=new Proxy(JSON.parse,{apply(r,e,t){const n=Reflect.apply(r,e,t);if(!location.pathname.startsWith(\"/shorts/\"))return n;const a=n?.entries;return a&&Array.isArray(a)&&(n.entries=n.entries.filter((r=>{if(!r?.command?.reelWatchEndpoint?.adClientParams?.isAd)return r}))),n}});})();": [
+        "(()=>{const t={apply:(t,e,n)=>{if(location.href.includes(\"/shorts/\")||location.href.includes(\"youtube.com/tv\")||location.href.includes(\"youtube.com/embed/\"))return Reflect.apply(t,e,n);try{const a=n[0];if(!a?.context?.client)return Reflect.apply(t,e,n);a.playbackContext&&(a.playbackContext.adPlaybackContext={pyv:!0}),a.playerRequest&&(a.playerRequest.playbackContext.adPlaybackContext={pyv:!0}),n[0]=a}catch(t){}return Reflect.apply(t,e,n)}};window.JSON.stringify=new Proxy(window.JSON.stringify,t)})();": [
             {
                 "permittedDomains": [
                     "www.youtube.com"
+                ],
+                "restrictedDomains": []
+            }
+        ],
+        "(()=>{let t=!1;document.addEventListener(\"click\",(e=>{const s=e.target.matches(\".episode-item, .tray-slide, .top10-post\")?e.target:e.target.closest(\".episode-item, .tray-slide, .top10-post\");s&&!t&&(((t,e=1,s=10)=>{if(!t||e<=0)return;let i=0;const o=()=>{i>=e||(t.click(),i++,i<e&&setTimeout(o,s))};setTimeout(o,s)})(s,2),t=!0)}),!0)})();": [
+            {
+                "permittedDomains": [
+                    "animahd.com"
+                ],
+                "restrictedDomains": []
+            }
+        ],
+        "(()=>{let e=0;const t=new WeakSet,n=t=>{const n=t?.currentTarget||t?.target;if(n)try{if(e>0&&n.currentTime<e)return void(n.currentTime=e)}catch(e){}},r={apply:(r,c,i)=>{try{const r=c.currentSrc;e>0&&c.currentTime<e&&r?.includes(\"livestitches\")&&(c.currentTime=e,t.has(c)||(c.addEventListener(\"timeupdate\",n),t.add(c)))}catch(e){}return Reflect.apply(r,c,i)}};window.HTMLMediaElement.prototype.play=new Proxy(window.HTMLMediaElement.prototype.play,r);const c={apply:(t,n,r)=>{try{const t=r[1]?.response?.result;if(t){const n=t?.timeline?.[0];n&&\"ad\"===n?.type&&(e=n?.duration||0,delete r[1].response.result.timeline)}}catch(e){}return Reflect.apply(t,n,r)}};window.Function.prototype.call=new Proxy(window.Function.prototype.call,c)})();": [
+            {
+                "permittedDomains": [
+                    "embed.acast.com"
                 ],
                 "restrictedDomains": []
             }
@@ -2788,21 +2926,6 @@
                 "restrictedDomains": []
             }
         ],
-        "var addthis = { init: function() {}, addEventListener: function() {}, button: function() {}, counter: function() {}, update: function() {}, toolbox: function() {}, layers: function() {} };": [
-            {
-                "permittedDomains": [],
-                "restrictedDomains": [
-                    "yandex.ru",
-                    "wetter.com",
-                    "milli-firka.org",
-                    "assassinscreed.com",
-                    "surfingbird.ru",
-                    "samsung.com",
-                    "imgur.com",
-                    "rockstargames.com"
-                ]
-            }
-        ],
         "twttr={events: { bind: function() {} }};": [
             {
                 "permittedDomains": [
@@ -2811,7 +2934,7 @@
                 "restrictedDomains": []
             }
         ],
-        "(()=>{const e={apply:(e,t,n)=>{try{let c=n[0];if(!c)return Reflect.apply(e,t,n);const r=Array.isArray(c),a=r?c[0]:c;if((a.includes('\"contentPlaybackContext\"')||a.includes('\"adSignalsInfo\"'))&&(!a.includes('\"params\":\"yAEB')||!a.includes('\"clientScreen\":\"ADUNIT\"'))){const c=JSON.parse(a);if(!c.context?.client)return Reflect.apply(e,t,n);c.context.client.clientScreen=\"ADUNIT\",c.playbackContext&&(c.params=`yAEB${c.params?c.params:\"\"}`);const o=JSON.stringify(c);r?n[0][0]=o:n[0]=o}}catch(e){console.trace(\"Error occurred:\",e)}return Reflect.apply(e,t,n)}};window.XMLHttpRequest.prototype.send=new Proxy(window.XMLHttpRequest.prototype.send,e)})();": [
+        "(()=>{const t={apply:(t,e,n)=>{try{let a=n[0];if(!a||location.href.includes(\"youtube.com/tv\")||location.href.includes(\"youtube.com/embed/\"))return Reflect.apply(t,e,n);const o=Array.isArray(a),c=o?a[0]:a;if(c.includes('\"contentPlaybackContext\"')||c.includes('\"adSignalsInfo\"')){const a=JSON.parse(c);if(!a.context?.client)return Reflect.apply(t,e,n);a.playbackContext&&(a.playbackContext.adPlaybackContext={pyv:!0}),a.playerRequest&&(a.playerRequest.playbackContext.adPlaybackContext={pyv:!0});const l=JSON.stringify(a);o?n[0][0]=l:n[0]=l}}catch(t){}return Reflect.apply(t,e,n)}};window.XMLHttpRequest.prototype.send=new Proxy(window.XMLHttpRequest.prototype.send,t)})();": [
             {
                 "permittedDomains": [
                     "www.youtube.com"
@@ -2862,16 +2985,6 @@
                 "permittedDomains": [
                     "lessentiel.lu",
                     "20min.ch"
-                ],
-                "restrictedDomains": []
-            }
-        ],
-        "(()=>{const a=(a,b,c)=>{const d=Reflect.apply(a,b,c),e=\".list-programmatic-ad-item--multi-line, .list-inbox-ad-item--multi-line { display: none !important; }\";if(\"adoptedStyleSheets\"in document){const a=new CSSStyleSheet;a.replaceSync(e),d.adoptedStyleSheets=[a]}else{const a=document.createElement(\"style\");a.innerText=e,d.appendChild(a)}return d};window.Element.prototype.attachShadow=new Proxy(window.Element.prototype.attachShadow,{apply:a})})();": [
-            {
-                "permittedDomains": [
-                    "gmx.net",
-                    "gmx.at",
-                    "web.de"
                 ],
                 "restrictedDomains": []
             }
@@ -2937,14 +3050,6 @@
             {
                 "permittedDomains": [
                     "giga.de"
-                ],
-                "restrictedDomains": []
-            }
-        ],
-        "!function(){const o={apply:(o,n,r)=>(new Error).stack.includes(\"refreshad\")?0:Reflect.apply(o,n,r)};window.Math.floor=new Proxy(window.Math.floor,o)}();": [
-            {
-                "permittedDomains": [
-                    "jprime.jp"
                 ],
                 "restrictedDomains": []
             }
@@ -3381,10 +3486,26 @@
                 "restrictedDomains": []
             }
         ],
+        "(()=>{if(location.href.includes(\"cdn.sirdata.eu/load_with_tcf.php?url=https\")){const a=new URLSearchParams(location.search).get(\"url\");a&&location.assign(a)}})();": [
+            {
+                "permittedDomains": [
+                    "cdn.sirdata.eu"
+                ],
+                "restrictedDomains": []
+            }
+        ],
         "(()=>{window.patroniteGdprData={google_recaptcha:\"allow\"}})();": [
             {
                 "permittedDomains": [
                     "patronite.pl"
+                ],
+                "restrictedDomains": []
+            }
+        ],
+        "(()=>{let t,e=!1;const o=new MutationObserver(((e,o)=>{const c=t?.querySelector('cmp-button[variant=\"primary\"]');c&&(c.click(),o.disconnect())})),c={apply:(c,n,a)=>{const r=Reflect.apply(c,n,a);return!e&&n.matches(\"cmp-dialog\")&&(e=!0,t=r),o.observe(r,{subtree:!0,childList:!0}),r}};window.Element.prototype.attachShadow=new Proxy(window.Element.prototype.attachShadow,c)})();": [
+            {
+                "permittedDomains": [
+                    "joyn.de"
                 ],
                 "restrictedDomains": []
             }
@@ -3815,7 +3936,7 @@
                 "restrictedDomains": []
             }
         ],
-        "(()=>{let t,e=!1;const o=new MutationObserver(((e,o)=>{const c=t?.querySelector('button#accept');c&&(c.click(),o.disconnect())})),c={apply:(c,n,p)=>{const r=Reflect.apply(c,n,p);return!e&&n.matches(\"#usercentrics-cmp-ui\")&&(e=!0,t=r),o.observe(r,{subtree:!0,childList:!0}),r}};window.Element.prototype.attachShadow=new Proxy(window.Element.prototype.attachShadow,c)})();": [
+        "(()=>{let t,e=!1;const o=new MutationObserver(((e,o)=>{const c=t?.querySelector('button[data-testid=\"uc-deny-all-button\"]');c&&(c.click(),o.disconnect())})),c={apply:(c,n,p)=>{const r=Reflect.apply(c,n,p);return!e&&n.matches(\"#usercentrics-root\")&&(e=!0,t=r),o.observe(r,{subtree:!0,childList:!0}),r}};window.Element.prototype.attachShadow=new Proxy(window.Element.prototype.attachShadow,c)})();": [
             {
                 "permittedDomains": [
                     "liebscher-bracht.com"
@@ -3832,19 +3953,10 @@
                 "restrictedDomains": []
             }
         ],
-        "(function(){window.self!==window.top||document.cookie.includes(\"visitor=\")||(document.cookie=\"visitor=1; path=/;\",document.cookie&&location.reload())})();": [
+        "(()=>{const e={apply:(e,t,l)=>{try{const e=(new Error).stack;if(e?.includes?.(\"initAdBlockDetection\")&&4===l[0]?.length)return Promise.resolve()}catch(e){}return Reflect.apply(e,t,l)}};window.Promise.allSettled=new Proxy(window.Promise.allSettled,e)})();": [
             {
                 "permittedDomains": [
-                    "youtube.com"
-                ],
-                "restrictedDomains": []
-            }
-        ],
-        "(function(){try{var time=(new Date).getTime();var cookieDate=new Date(time+1314E6);var hostname=location.host;var locSubString=null;if(!hostname.startsWith(\"google.\")&&!hostname.startsWith(\"youtube.\"))locSubString=hostname.substring(hostname.indexOf(\".\")+1);var loc=locSubString||hostname;if(document.cookie.indexOf(\"CONSENT=YES\")!==-1)return;document.cookie=\"CONSENT=YES+; domain=\"+loc+\"; path=/; expires=\"+cookieDate.toUTCString()}catch(ex){console.error(\"AG: failed to set consent cookie: \"+ex)}})();": [
-            {
-                "permittedDomains": [
-                    "google.*",
-                    "youtube.com"
+                    "slate.com"
                 ],
                 "restrictedDomains": []
             }
@@ -4139,6 +4251,14 @@
                 "restrictedDomains": []
             }
         ],
+        "(()=>{const t={construct:(t,e,n)=>{const r=e[0],o=r?.toString(),c=o?.includes(\"vidFloating\");return c&&(e[0]=()=>{}),Reflect.construct(t,e,n)}};window.IntersectionObserver=new Proxy(window.IntersectionObserver,t)})();": [
+            {
+                "permittedDomains": [
+                    "calciomercato.com"
+                ],
+                "restrictedDomains": []
+            }
+        ],
         "(()=>{var b=EventTarget.prototype.addEventListener,c=function(a,b){var c=document.querySelector(\"button.AppHeader-login, .AppHeader-userInfo > .AppHeader-profile > div > button.Button--blue\");c&&b.bind(c)(\"click\",function(){d.disconnect()},{once:!0})},d=new MutationObserver(function(){var a=document.querySelector(\".Modal-wrapper .signFlowModal > .Modal-closeButton\");a&&(d.disconnect(),e.disconnect(),a.click())});d.observe(document,{childList:!0,subtree:!0});var e=new MutationObserver(a=>{c(a,b)});e.observe(document,{childList:!0,subtree:!0}),setTimeout(function(){e.disconnect(),d.disconnect()},5E3)})();": [
             {
                 "permittedDomains": [
@@ -4244,6 +4364,14 @@
             {
                 "permittedDomains": [
                     "yasir252.com"
+                ],
+                "restrictedDomains": []
+            }
+        ],
+        "(()=>{let t,e=!0;document.addEventListener(\"click\",(i=>{if(i.target.matches(\"button.button-login\"))return e=!1,void(t&&(t.style.visibility=\"visible\"));i.target.matches(\"button.close\")&&document.querySelector(\"dialog.PartLoginModal\").contains(i.target)&&(e=!0)}),!0),document.addEventListener(\"toggle\",(i=>{i.target.matches(\"dialog.PartLoginModal\")&&\"open\"===i.newState&&e&&(t=i.target,t.style.visibility=\"hidden\",t.querySelector(\"button.close\").click())}),!0)})();": [
+            {
+                "permittedDomains": [
+                    "bijutsutecho.com"
                 ],
                 "restrictedDomains": []
             }
@@ -4632,37 +4760,18 @@
                 "restrictedDomains": []
             }
         ],
-        "(function(){z=self.EventTarget.prototype.addEventListener;self.EventTarget.prototype.addEventListener=function(a,b){if(!/cut|copy|paste/.test(a.toString()))return z.apply(this,arguments)}})();": [
+        "window.addEventListener(\"selectstart\",function(a){a.stopPropagation()},!0);": [
             {
                 "permittedDomains": [
-                    "kingbet.net"
+                    "murciatoday.com"
                 ],
                 "restrictedDomains": []
             }
         ],
-        "window.addEventListener(\"contextmenu\",function(a){a.stopPropagation()},!0);": [
+        "(function(){z=self.EventTarget.prototype.addEventListener;self.EventTarget.prototype.addEventListener=function(a,b){if(!/cut|copy|paste/.test(a.toString()))return z.apply(this,arguments)}})();": [
             {
                 "permittedDomains": [
-                    "stiffgamerdown.com",
-                    "animeshouse.net",
-                    "animeunity.it",
-                    "themeslide.com",
-                    "orangespotlight.com",
-                    "magdyman.com",
-                    "topflix.*",
-                    "poisonous-raspberry-fields.blogspot.com",
-                    "redirdx.in",
-                    "tmofans.com",
-                    "thememazing.com",
-                    "baan-series.com",
-                    "baixarfilmetorrent.net",
-                    "yourupload.com",
-                    "wikitechy.com",
-                    "windes.com.es",
-                    "freecourser.com",
-                    "audioreview.m1001.coreserver.jp",
-                    "portalwrc.pl",
-                    "themeslide.com"
+                    "kingbet.net"
                 ],
                 "restrictedDomains": []
             }

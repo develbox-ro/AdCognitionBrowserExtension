@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -41,7 +43,7 @@ import {
 import { translator } from '../../../common/translators/translator';
 import { type PromoNotification } from '../../../background/storages';
 import {
-    AppState,
+    type AppState,
     appStateActor,
     AppStateEvent,
 } from '../state-machines/app-state-machine';
@@ -51,6 +53,7 @@ import { UserAgent } from '../../../common/user-agent';
 import { logger } from '../../../common/logger';
 import { sleepIfNecessary } from '../../../common/sleep-utils';
 import { NotificationType, type NotificationParams } from '../../common/types';
+import { TelemetryStore } from '../../common/telemetry';
 
 type BlockedStatsInfo = {
     tabId: number;
@@ -83,17 +86,10 @@ export class PopupStore {
     isFilteringPossible = true;
 
     /**
-     * Flag that indicates whether the filtering engine is started.
-     *
-     * Needed for splash screen displaying.
-     *
-     * If not set, equals to `null` which means that the engine state is unknown
-     * and empty screen (splash screen with no logo) should be displayed.
-     * If set to `true`, the engine is started and the splash screen should not be displayed.
-     * If set to `false`, the engine is not started and the splash screen should be displayed.
+     * Flag that indicates whether the application is initialized.
      */
     @observable
-    isEngineStarted: boolean | null = null;
+    isAppInitialized: boolean = false;
 
     /**
      * Flag that indicates whether the filtering on a website is disabled
@@ -161,15 +157,24 @@ export class PopupStore {
     @observable
     isExtensionUpdateAvailable = false;
 
+    /**
+     * Whether the extension update is checking or is updating now.
+     */
     @observable
-    isExtensionUpdating = false;
+    isExtensionCheckingUpdateOrUpdating = false;
 
     @observable
     updateNotification: NotificationParams | null = null;
 
+    /**
+     * Telemetry store.
+     */
+    telemetryStore: TelemetryStore;
+
     constructor() {
         makeObservable(this);
         this.checkUpdatesMV3 = this.checkUpdatesMV3.bind(this);
+        this.telemetryStore = new TelemetryStore();
 
         appStateActor.subscribe((state) => {
             runInAction(() => {
@@ -179,15 +184,22 @@ export class PopupStore {
     }
 
     /**
-     * Checks whether the filtering engine is started.
+     * Fetches the application initialized state from the background.
+     */
+    fetchIsAppInitialized = async () => {
+        const res = await messenger.getIsAppInitialized();
+
+        this.setIsAppInitialized(res);
+    };
+
+    /**
+     * Sets the application initialized flag.
+     *
+     * @param value Whether the application is initialized.
      */
     @action
-    checkIsEngineStarted = async () => {
-        const res = await messenger.getIsEngineStarted();
-
-        runInAction(() => {
-            this.isEngineStarted = res;
-        });
+    setIsAppInitialized = (value: boolean) => {
+        this.isAppInitialized = value;
     };
 
     /**
@@ -202,16 +214,6 @@ export class PopupStore {
             appStateActor.send({ type: AppStateEvent.Enable });
         }
     };
-
-    /**
-     * Flag that indicates whether the popup is loading
-     * and a splash screen should be displayed.
-     */
-    @computed
-    get isLoading(): boolean {
-        return this.appState === AppState.Loading
-            && !this.isEngineStarted;
-    }
 
     @action
     getPopupData = async (): Promise<GetTabInfoForPopupResponse | undefined> => {
@@ -278,6 +280,10 @@ export class PopupStore {
 
             this.setAppActorInitState();
 
+            // telemetry
+            const anonymizedUsageDataAllowed = settings.values[settings.names.AllowAnonymizedUsageData];
+            this.telemetryStore.setIsAnonymizedUsageDataAllowed(anonymizedUsageDataAllowed);
+
             // Handle MV3-specific options
             if (!mv3SpecificOptions) {
                 // Early exit for MV2 or when mv3SpecificOptions is absent
@@ -300,22 +306,24 @@ export class PopupStore {
             // and it cannot be done by notifier (from the background page)
             // because event may be dispatched _before_ the popup is opened,
             // i.e. listener may not be registered yet.
-            if (isExtensionReloadedOnUpdate) {
-                if (isSuccessfulExtensionUpdate) {
-                    this.setUpdateNotification({
-                        type: NotificationType.Success,
-                        text: translator.getMessage('update_success_text'),
-                    });
-                } else {
-                    this.setUpdateNotification({
-                        type: NotificationType.Error,
-                        text: translator.getMessage('update_failed_text'),
-                        button: {
-                            title: translator.getMessage('update_failed_try_again_btn'),
-                            onClick: this.checkUpdatesMV3,
-                        },
-                    });
-                }
+            if (!isExtensionReloadedOnUpdate) {
+                return;
+            }
+
+            if (isSuccessfulExtensionUpdate) {
+                this.setUpdateNotification({
+                    type: NotificationType.Success,
+                    text: translator.getMessage('update_success_text'),
+                });
+            } else {
+                this.setUpdateNotification({
+                    type: NotificationType.Error,
+                    text: translator.getMessage('update_failed_text'),
+                    button: {
+                        title: translator.getMessage('update_failed_try_again_btn'),
+                        onClick: this.checkUpdatesMV3,
+                    },
+                });
             }
         });
     };
@@ -639,18 +647,16 @@ export class PopupStore {
     @action
     async checkUpdatesMV3() {
         const start = Date.now();
-        this.setIsExtensionUpdating(true);
 
         try {
             this.setUpdateNotification(null);
-            await messenger.checkUpdatesFromPopupMV3();
+            await messenger.checkUpdatesMV3();
         } catch (error: unknown) {
             logger.debug('[ext.PopupStore.checkUpdatesMV3]: failed to check updates in popup: ', error);
         }
 
         // Ensure minimum duration for smooth UI experience
         await sleepIfNecessary(start, MIN_UPDATE_DISPLAY_DURATION_MS);
-        this.setIsExtensionUpdating(false);
     }
 
     @action
@@ -659,8 +665,8 @@ export class PopupStore {
     }
 
     @action
-    setIsExtensionUpdating(isUpdating: boolean): void {
-        this.isExtensionUpdating = isUpdating;
+    setIsExtensionCheckingUpdateOrUpdating(value: boolean): void {
+        this.isExtensionCheckingUpdateOrUpdating = value;
     }
 
     @action

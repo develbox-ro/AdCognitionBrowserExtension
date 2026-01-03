@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -85,6 +87,7 @@ export class UpdateApi {
         '9': UpdateApi.migrateFromV9toV10,
         '10': UpdateApi.migrateFromV10toV11,
         '11': UpdateApi.migrateFromV11toV12,
+        '12': UpdateApi.migrateFromV12toV13,
     };
 
     /**
@@ -205,6 +208,24 @@ export class UpdateApi {
 
         return value;
     };
+
+    /**
+     * Run data migration from schema v12 to schema v13.
+     *
+     * Adds the new {SettingOption.AllowAnonymizedUsageData} setting with default value false.
+     *
+     * For the extension update to v5.2.600.X.
+     */
+    private static async migrateFromV12toV13(): Promise<void> {
+        const settings = await browserStorage.get(ADGUARD_SETTINGS_KEY);
+
+        if (!UpdateApi.isObject(settings)) {
+            throw new Error('Settings is not an object');
+        }
+        settings[SettingOption.AllowAnonymizedUsageData] = false;
+
+        await browserStorage.set(ADGUARD_SETTINGS_KEY, settings);
+    }
 
     /**
      * Run data migration from schema v11 to schema v12.

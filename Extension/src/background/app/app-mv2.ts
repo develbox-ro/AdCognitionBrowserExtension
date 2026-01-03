@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -47,6 +49,7 @@ import {
     UiApi,
     PageStatsApi,
     HitStatsApi,
+    iconsApi,
 } from '../api';
 import {
     UiService,
@@ -62,6 +65,7 @@ import {
     localeDetect,
     PromoNotificationService,
     filterUpdateService,
+    Telemetry,
 } from '../services';
 import { SettingOption } from '../schema';
 import { getRunInfo } from '../utils';
@@ -315,11 +319,16 @@ export class App {
 
         appContext.set(AppContextKey.IsInit, true);
 
+        // Update icons to hide "loading" icon
+        await iconsApi.update();
+
         // Initialize filters updates, after engine started, so that it won't mingle with engine
         // initialization from current rules
         filterUpdateService.init();
 
         await sendMessage({ type: MessageType.AppInitialized });
+
+        await Telemetry.init();
     }
 
     /**

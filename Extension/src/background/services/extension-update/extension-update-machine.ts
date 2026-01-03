@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -66,6 +68,7 @@ const extensionUpdateMachine = setup({
             on: {
                 [ExtensionUpdateFSMEvent.Init]: [
                     {
+                        // TODO: check if it is still needed. AG-47075
                         guard: ({ event }: { event: EventType }): boolean => !!event.isUpdateAvailable,
                         target: ExtensionUpdateFSMState.Available,
                     },
@@ -77,6 +80,10 @@ const extensionUpdateMachine = setup({
                 [ExtensionUpdateFSMEvent.Check]: {
                     target: ExtensionUpdateFSMState.Checking,
                 },
+                // UpdateAvailable event is emitted when chrome.runtime.onUpdateAvailable is fired
+                [ExtensionUpdateFSMEvent.UpdateAvailable]: {
+                    target: ExtensionUpdateFSMState.Available,
+                },
             },
         },
         [ExtensionUpdateFSMState.Checking]: {
@@ -86,6 +93,10 @@ const extensionUpdateMachine = setup({
                 },
                 [ExtensionUpdateFSMEvent.NoUpdateAvailable]: {
                     target: ExtensionUpdateFSMState.NotAvailable,
+                },
+                // This can be done if checking failed due to timeout
+                [ExtensionUpdateFSMEvent.UpdateFailed]: {
+                    target: ExtensionUpdateFSMState.Failed,
                 },
             },
         },
@@ -166,7 +177,7 @@ function createExtensionUpdateActorWithHandler(): ReturnType<typeof createActor>
         // needed, because it will set the correct icon for all tabs independent
         // of their state (enabled/disabled/allowlisted).
         if (state.value === ExtensionUpdateFSMState.Available) {
-            iconsApi.update();
+            await iconsApi.update();
         }
     };
 

@@ -238,7 +238,7 @@ Integration tests:
     - script:
         interpreter: SHELL
         scripts:
-          - ./bamboo-specs/scripts/link-tsurlfilter.sh --with-agtree
+          - ./bamboo-specs/scripts/link-tsurlfilter.sh --with-agtree --with-tsurlfilter
     - script:
         interpreter: SHELL
         scripts:

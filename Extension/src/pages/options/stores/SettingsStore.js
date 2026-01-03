@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -32,6 +34,7 @@ import {
     WASTE_CHARACTERS,
 } from '../../../common/constants';
 import { logger } from '../../../common/logger';
+import { ForwardFrom } from '../../../common/forward';
 import { sleepIfNecessary, sleep } from '../../../common/sleep-utils';
 import { translator } from '../../../common/translators/translator';
 import { UserAgent } from '../../../common/user-agent';
@@ -168,7 +171,7 @@ class SettingsStore {
     optionsReadyToRender = false;
 
     @observable
-    version = null;
+    appVersion = null;
 
     @observable
     libVersions = null;
@@ -210,10 +213,10 @@ class SettingsStore {
     isExtensionUpdateAvailable = false;
 
     /**
-     * Whether the extension update is checking.
+     * Whether the extension update is checking or is updating now.
      */
     @observable
-    isCheckingExtensionUpdate = false;
+    isExtensionCheckingUpdateOrUpdating = false;
 
     @observable
     selectedGroupId = null;
@@ -258,6 +261,7 @@ class SettingsStore {
         makeObservable(this);
         this.rootStore = rootStore;
         this.uiStore = rootStore.uiStore;
+        this.telemetryStore = rootStore.telemetryStore;
 
         this.updateSetting = this.updateSetting.bind(this);
         this.updateFilterSetting = this.updateFilterSetting.bind(this);
@@ -352,7 +356,7 @@ class SettingsStore {
                 this.setGroups(data.filtersMetadata.categories);
             }
             this.rulesCount = data.filtersInfo.rulesCount;
-            this.version = data.appVersion;
+            this.appVersion = data.appVersion;
             this.libVersions = data.libVersions;
             this.constants = data.constants;
             this.setAllowAcceptableAds(data.filtersMetadata.filters);
@@ -361,6 +365,10 @@ class SettingsStore {
             this.isChrome = data.environmentOptions.isChrome;
             this.optionsReadyToRender = true;
             this.fullscreenUserRulesEditorIsOpen = data.fullscreenUserRulesEditorIsOpen;
+
+            // telemetry
+            const anonymizedUsageDataAllowed = data.settings.values[data.settings.names.AllowAnonymizedUsageData];
+            this.telemetryStore.setIsAnonymizedUsageDataAllowed(anonymizedUsageDataAllowed);
 
             // Handle MV3-specific options
             const { mv3SpecificOptions } = data;
@@ -751,29 +759,27 @@ class SettingsStore {
         }
     }
 
+    // eslint-disable-next-line class-methods-use-this
     @action
     async checkUpdatesMV3() {
         const start = Date.now();
-        this.setIsCheckingExtensionUpdate(true);
-        let isAvailable = false;
-
         try {
-            isAvailable = await messenger.checkUpdatesFromOptionsMV3();
+            await messenger.checkUpdatesMV3();
         } catch (error) {
             logger.debug('[ext.SettingsStore.checkUpdatesMV3]: failed to check updates on options page: ', error);
         }
 
         // Ensure minimum duration for smooth UI experience
         await sleepIfNecessary(start, MIN_UPDATE_DISPLAY_DURATION_MS);
-        this.setIsCheckingExtensionUpdate(false);
-        this.setIsExtensionUpdateAvailable(isAvailable);
     }
 
     // eslint-disable-next-line class-methods-use-this
     async updateExtensionMV3() {
         const start = Date.now();
         try {
-            await messenger.updateExtensionFromOptionsMV3();
+            await messenger.updateExtensionMV3({
+                from: ForwardFrom.Options,
+            });
         } catch (error) {
             logger.debug('[ext.SettingsStore.updateExtensionMV3]: failed to update extension on options page: ', error);
         }
@@ -787,8 +793,8 @@ class SettingsStore {
     }
 
     @action
-    setIsCheckingExtensionUpdate(isChecking) {
-        this.isCheckingExtensionUpdate = isChecking;
+    setIsExtensionCheckingUpdateOrUpdating(isChecking) {
+        this.isExtensionCheckingUpdateOrUpdating = isChecking;
     }
 
     /**

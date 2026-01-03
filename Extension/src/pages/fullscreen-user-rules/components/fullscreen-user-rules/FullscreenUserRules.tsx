@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -55,7 +57,7 @@ export const FullscreenUserRules = observer(() => {
                 NotifierType.SettingUpdated,
             ];
 
-            removeListenerCallback = Messenger.createLongLivedConnection(
+            const { onUnload } = Messenger.createLongLivedConnection(
                 Page.FullscreenUserRules,
                 events,
                 async (message: LongLivedConnectionCallbackMessage) => {
@@ -73,6 +75,8 @@ export const FullscreenUserRules = observer(() => {
                     }
                 },
             );
+
+            removeListenerCallback = onUnload;
         })();
 
         return () => {

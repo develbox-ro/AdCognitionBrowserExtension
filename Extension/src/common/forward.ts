@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -79,13 +81,16 @@ export const enum ForwardAction {
     GithubVersionBeta = 'github_version_popup_beta',
     LearnAboutAdGuard = 'learn_about_adguard',
     FilteringLogAssumedRule = 'filtering_log_assumed_rule',
-    BackToSchool25 = 'back_to_school_25',
+    NewYear25 = 'new_year_25',
     // TODO: Delete from here and TDS after release v5.2.
     CustomFiltersMv3Disabled = 'custom_mv3_disabled',
     // IMPORTANT: do not change the value as tds is already configured for that specific string.
     UserScriptsApiRequired = 'developer_mode_required',
 }
 
+/**
+ * All pages from which a user can be forwarded.
+ */
 export const enum ForwardFrom {
     Background = 'background',
     Options = 'options_screen',

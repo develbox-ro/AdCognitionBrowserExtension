@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -16,27 +18,21 @@
  * along with AdGuard Browser Extension. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import path from 'node:path';
-import { promises as fsp } from 'node:fs';
-
-import { BUILD_ENV, BUILD_PATH } from '../constants';
-import packageJson from '../../package.json';
-
-import { getEnvConf } from './helpers';
-
-const config = getEnvConf(BUILD_ENV);
-const OUTPUT_PATH = config.outputPath;
-
-const content = `version=${packageJson.version}`;
-const FILE_NAME = 'build.txt';
-
-const filePath = path.join(BUILD_PATH, OUTPUT_PATH, FILE_NAME);
+/**
+ * Filter update detail.
+ */
+export type FilterUpdateOptions = {
+    /**
+     * Filter identifier.
+     */
+    filterId: number;
+    /**
+     * Should we update filters fully without patch updates or load patches to filters.
+     */
+    ignorePatches: boolean;
+};
 
 /**
- * Writes build.txt file with current version
- *
- * @returns {Promise<void>}
+ * List of filter update details.
  */
-export const buildInfo = async () => {
-    await fsp.writeFile(filePath, content, 'utf-8');
-};
+export type FilterUpdateOptionsList = FilterUpdateOptions[];

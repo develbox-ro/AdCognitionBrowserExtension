@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -59,6 +61,11 @@ export type IconVariants = {
      * State icon variants when the extension update is available.
      */
     updateAvailable: IconData;
+
+    /**
+     * State icon variants when the extension is loading.
+     */
+    loading: IconData;
 };
 
 export type PromoNotification = {
@@ -87,206 +94,211 @@ export type PromoNotification = {
     icons?: IconVariants;
 };
 
-const BACK_TO_SCHOOL_25_ID = 'backToSchool25';
+const isRuLocale = browser.i18n.getUILanguage().substring(0, 2).toLowerCase() === 'ru';
 
-const backToSchool25Notification: PromoNotification = {
-    id: BACK_TO_SCHOOL_25_ID,
+const dateTo = isRuLocale
+    ? '3 January 2026 23:59:00'
+    : '1 January 2026 23:59:00';
+
+const NEW_YEAR_25_ID = 'new_year_25';
+
+const newYear25Notification: PromoNotification = {
+    id: NEW_YEAR_25_ID,
     locales: {
         en: {
-            title: 'Back to School promo',
-            btn: 'Up to 40% off',
+            title: 'Add spark to browsing',
+            btn: 'Unlock the deal',
         },
         fr: {
-            title: 'La Rentrée avec AdGuard',
-            btn: "Jusqu'à 40% de remise",
+            title: 'Le Web rayonnera avec AdGuard',
+            btn: 'Découvrez l\'offre',
         },
         it: {
-            title: 'A Scuola con AdGuard',
-            btn: 'Fino al 40% di sconto',
+            title: 'Il Web brillerà con AdGuard',
+            btn: 'Vedi l\'offerta',
         },
         de: {
-            title: 'Back to School Promo',
-            btn: 'Bis zu 40% Rabatt',
+            title: 'Mehr Glanz beim Surfen',
+            btn: 'Deal öffnen',
         },
         ru: {
-            title: 'Снова в школу',
-            btn: 'Скидки до 40%',
+            title: 'Интернет засияет с AdGuard',
+            btn: 'Попробовать',
         },
         es: {
-            title: 'Promo de vuelta al cole',
-            btn: 'Hasta un 40% OFF',
+            title: 'Tu web brilla con AdGuard',
+            btn: 'Aprovechar',
         },
         es_419: {
-            title: 'Vuelta al cole',
-            btn: 'Hasta un 40% OFF',
+            title: 'Tu web brilla con AdGuard',
+            btn: 'Aprovechar',
         },
         pt_pt: {
-            title: 'Promo de volta às aulas',
-            btn: 'Até 40% OFF',
+            title: 'A sua web brilha com o AdGuard',
+            btn: 'Ver a oferta',
         },
         pt_br: {
-            title: 'Promo de volta às aulas',
-            btn: 'Até 40% OFF',
+            title: 'Sua web brilha com AdGuard',
+            btn: 'Ver oferta',
         },
         zh_cn: {
-            title: '返校季 SALE',
-            btn: '低至6折',
+            title: '一键点亮，浏览再无干扰',
+            btn: '解锁专属特惠',
         },
         zh_tw: {
-            title: '返校 SALE',
-            btn: '低至6折',
+            title: '一鍵點亮，瀏覽再無干擾',
+            btn: '解鎖專屬特惠',
         },
-        // ja: {
-        //     title: 'AdGuard 16周年セール',
-        //     btn: 'セール内容はこちら',
-        // },
+        ja: {
+            title: 'クリスマスセールと 有料版の特徴について',
+            btn: '詳細はこちら',
+        },
         ko: {
-            title: '백투스쿨 세일',
-            btn: '최대 40% 할인',
+            title: 'AdGuard 크리스마스 프로모션',
+            btn: '자세히 알아보기',
         },
         uk: {
-            title: 'Знову до школи',
-            btn: 'Знижки до 40%',
+            title: 'Інтернет засяє з AdGuard',
+            btn: 'Спробуйте',
         },
         ar: {
-            title: 'عرض العودة إلى المدرسة',
-            btn: '٪خصومات تصل إلى 40',
+            title: 'أضف لمسة لتصفحك',
+            btn: 'افتح العرض',
         },
         be: {
-            title: 'Зноў у школу',
-            btn: 'Зніжкі да 40%',
+            title: 'Інтэрнэт заззяе з AdGuard',
+            btn: 'Паспрабаваць',
         },
         bg: {
-            title: 'Обратно на училище: промоция',
-            btn: 'Отстъпки до 40%',
+            title: 'Интернетът ще засияе с AdGuard',
+            btn: 'Опитайте',
         },
         ca: {
-            title: "Tornada a l'escola",
-            btn: 'Descomptes –40%',
+            title: 'Dóna llum a la navegació',
+            btn: 'Obre l’oferta',
         },
         cs: {
-            title: 'Zpátky do školy: Akce',
-            btn: 'Slevy až 40%',
+            title: 'Internet zazáří s AdGuardem',
+            btn: 'Vyzkoušejte',
         },
         da: {
-            title: 'Tilbage til skole promo',
-            btn: 'Rabatter op til 40%',
+            title: 'Giv browseren lidt glans',
+            btn: 'Åpne tilbudet',
         },
         el: {
-            title: 'Επιστροφή στα σχολεία',
-            btn: 'Εκπτώσεις έως και 40%',
+            title: 'Πρωτοχρονιά στο AdGuard',
+            btn: 'Ανοιξε',
         },
         fa: {
-            title: 'تبلیغات بازگشت به مدرسه',
-            btn: '٪خفیف‌ها تا 40',
+            title: 'مرور خود را درخشان کن',
+            btn: 'پیشنهاد را باز کن',
         },
         fi: {
-            title: 'Takaisin kouluun -kampanja',
-            btn: 'Alennukset jopa 40%',
+            title: 'Lisää säihkettä selaamiseen',
+            btn: 'Avaa diili',
         },
         he: {
-            title: 'מבצע חזרה לבית הספר',
-            btn: 'הנחות עד 40%',
+            title: 'הוסף ניצוץ לגלישה',
+            btn: 'פתח את ההצעה',
         },
         hr: {
-            title: 'Natrag u školu: Promo',
-            btn: 'Popusti do 40%',
+            title: 'Internet će zasjati uz AdGuard',
+            btn: 'Isprobajte',
         },
         hu: {
-            title: 'Vissza az iskolába promóció',
-            btn: 'Akár 40% kedvezmény',
+            title: 'Vigyél szikrást böngészéshez',
+            btn: 'Fogd a deal-t',
         },
         hy: {
-            title: 'Վերադառնալ դպրոց',
-            btn: 'Զեղչեր՝ մինչև 40%',
+            title: 'Ինտերնետը կփայլի AdGuard-ով',
+            btn: 'Փորձեք',
         },
         id: {
-            title: 'Promo Kembali ke Sekolah',
-            btn: 'Diskon hingga 40%',
+            title: 'Tambahkan kilau saat browsing',
+            btn: 'Buka penawaran',
         },
         lt: {
-            title: 'Atgal į mokyklą: akcija',
-            btn: 'Nuolaidos iki 40%',
+            title: 'Įnešk žaismo naršymui',
+            btn: 'Atidaryk pasiūlymą',
         },
         ms: {
-            title: 'Promosi Kembali ke Sekolah',
-            btn: 'Diskaun sehingga 40%',
+            title: 'Tahun Baru dalam AdGuard',
+            btn: 'Buka',
         },
         nb: {
-            title: 'Tilbake til skolen',
-            btn: 'Rabatter opptil 40%',
+            title: 'Gi surfing en gnist',
+            btn: 'Lås opp tilbudet',
         },
         nl: {
-            title: 'Terug naar school promotie',
-            btn: 'Kortingen tot 40%',
+            title: 'Geef browsen wat extra glans',
+            btn: 'Open de deal',
         },
         pl: {
-            title: 'Powrót do szkoły: Promocja',
-            btn: 'Zniżki do 40%',
+            title: 'Wszystko zabłyśnie z AdGuardem',
+            btn: 'Wypróbuj',
         },
         ro: {
-            title: 'Înapoi la școală: Promoția',
-            btn: 'Reduceri de până la 40%',
+            title: 'Dă strălucire navigării',
+            btn: 'Deschide oferta',
         },
         sk: {
-            title: 'Späť do školy: Promo akcia',
-            btn: 'Zľavy až do 40%',
+            title: 'Všetko sa rozžiari s AdGuardom',
+            btn: 'Vyskúšajte',
         },
         sl: {
-            title: 'Nazaj v šolo: Promocija',
-            btn: 'Popusti do 40%',
+            title: 'Vse bo zasijalo z AdGuardom',
+            btn: 'Preizkusite',
         },
         sr_latn: {
-            title: 'Povratak u školu: Promocija',
-            btn: 'Popusti do 40%',
+            title: 'Sve će zasijati uz AdGuard',
+            btn: 'Probajte',
         },
         sv: {
-            title: 'Tillbaka till skolan',
-            btn: 'Rabatter upp till 40%',
+            title: 'Ge surfing en gnista',
+            btn: 'Öppna erbjudandet',
         },
         tr: {
-            title: 'Okula Dönüş kampanyası',
-            btn: '%40’a varan indirimler',
+            title: 'Taramaya ışıltı kat',
+            btn: 'Teklifi aç',
         },
         vi: {
-            title: 'Back to School: Khuyến mãi',
-            btn: 'Giảm giá lên đến 40%',
+            title: 'Thêm tinh tú cho trình duyệt',
+            btn: 'Mở ưu đãi',
         },
         mk: {
-            title: 'Назад на училиште: Промоција',
-            btn: 'Попусти до 40%',
+            title: 'Сè ќе заблеска со AdGuard',
+            btn: 'Пробајте',
         },
         hi: {
-            title: 'स्कूल वापसी प्रमो',
-            btn: '40% तक की छूट',
+            title: 'ब्राउज़िंग में चमक जोड़ें',
+            btn: 'डील अनलॉक करें',
         },
         et: {
-            title: 'Tagasi kooli pakkumine',
-            btn: 'Allahindlus kuni 40%',
+            title: 'Lisa sära sirvimisele',
+            btn: 'Ava diil',
         },
         th: {
-            title: 'Back to School',
-            btn: 'ส่วนลดสูงสุด 40%',
+            title: 'เพิ่มความสดใสให้การท่องเว็บ',
+            btn: 'ปลดล็อกดีล',
         },
     },
     text: '',
-    url: Forward.get({ action: ForwardAction.BackToSchool25 }),
-    from: '25 August 2025 12:00:00',
-    to: '1 September 2025 23:59:00',
+    url: Forward.get({ action: ForwardAction.NewYear25 }),
+    from: '22 December 2025 12:00:00',
+    to: dateTo,
     type: 'animated',
-    bgImage: browser.runtime.getURL('assets/images/bts25.svg'),
-    bgImageOnUpdate: browser.runtime.getURL('assets/images/bts25-update.svg'),
+    bgImage: browser.runtime.getURL('assets/images/newyear25.svg'),
+    bgImageOnUpdate: browser.runtime.getURL('assets/images/newyear25.svg'),
     icons: {
+        ...defaultIconVariants,
         enabled: {
-            '19': browser.runtime.getURL('assets/icons/bts25-on-19.png'),
-            '38': browser.runtime.getURL('assets/icons/bts25-on-38.png'),
+            '19': browser.runtime.getURL('assets/icons/newyear25-on-19.png'),
+            '38': browser.runtime.getURL('assets/icons/newyear25-on-38.png'),
         },
         disabled: {
-            '19': browser.runtime.getURL('assets/icons/bts25-off-19.png'),
-            '38': browser.runtime.getURL('assets/icons/bts25-off-38.png'),
+            '19': browser.runtime.getURL('assets/icons/newyear25-off-19.png'),
+            '38': browser.runtime.getURL('assets/icons/newyear25-off-38.png'),
         },
-        warning: defaultIconVariants.warning,
-        updateAvailable: defaultIconVariants.updateAvailable,
     },
 };
 
@@ -294,5 +306,5 @@ const backToSchool25Notification: PromoNotification = {
  * In-memory notifications mapping.
  */
 export const notificationStorage = new Map<string, PromoNotification>([
-    [BACK_TO_SCHOOL_25_ID, backToSchool25Notification],
+    [NEW_YEAR_25_ID, newYear25Notification],
 ]);

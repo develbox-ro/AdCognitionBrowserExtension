@@ -1,5 +1,9 @@
-set -x
-set -e
+# 'set' should be added to the beginning of each script to ensure that it runs with the correct options.
+# Please do not move it to some common file, like `setup-tests.sh`, because sourcing A script from B script
+# cannot change the options of B script.
+#  -e: Exit immediately if any command exits with a non-zero status (i.e., if a command fails).
+#  -x: Print each command to the terminal as it is executed, which is useful for debugging.
+set -ex
 
 # Fix mixed logs
 exec 2>&1
@@ -42,7 +46,14 @@ done
 TSURLFILTER_REF=""
 
 # Repository URLs
-TSURLFILTER_REPO="ssh://git@bit.int.agrd.dev:7999/adguard-filters/tsurlfilter.git"
+# This should be set as a Bamboo project variable: tsurlfilterRepoUrl
+TSURLFILTER_REPO="${bamboo_tsurlfilterRepoUrl}"
+
+# Validate required variable is set
+if [ -n "${TSURLFILTER_REF}" ] && [ -z "${TSURLFILTER_REPO}" ]; then
+    echo "ERROR: bamboo_tsurlfilterRepoUrl is not set. Please configure it in Bamboo project variables."
+    exit 1
+fi
 
 # Function to setup SSH for tsurlfilter cloning
 setup_ssh() {

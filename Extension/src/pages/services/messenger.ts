@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -61,6 +63,9 @@ import {
     type AddUrlToTrustedMessage,
     type ExtractedMessage,
     type OpenSafebrowsingTrustedMessage,
+    type UpdateExtensionMessageMv3,
+    type SendTelemetryPageViewEventMessage,
+    type SendTelemetryCustomEventMessage,
 } from '../../common/messages';
 import { type NotifierType } from '../../common/constants';
 import { type CreateEventListenerResponse } from '../../background/services/event';
@@ -87,12 +92,28 @@ export type LongLivedConnectionCallbackMessage = {
 export const enum Page {
     FullscreenUserRules = 'fullscreen-user-rules',
     FilteringLog = 'filtering-log',
+    Popup = 'popup',
 }
 
 type UnloadCallback = () => void;
 
 /**
- * Messenger class, used to communicate with the background page from the UI.
+ * Result of createLongLivedConnection.
+ */
+export type LongLivedConnectionResult = {
+    /**
+     * Callback function which disconnects from the background page.
+     */
+    onUnload: UnloadCallback;
+
+    /**
+     * Port ID of the connection.
+     */
+    portId: string;
+};
+
+/**
+ * MessengerCommon class, used to communicate with the background page from the UI.
  * Actually, it's a wrapper around the browser.runtime.sendMessage method.
  */
 class Messenger {
@@ -143,18 +164,20 @@ class Messenger {
      * @param events List of events to which subscribe.
      * @param callback Callback called when event fires.
      *
-     * @returns Function to remove listener on unload.
+     * @returns Object with onUnload callback and portId.
      */
     static createLongLivedConnection = (
         page: Page,
         events: NotifierType[],
         callback: (message: LongLivedConnectionCallbackMessage) => void,
-    ): UnloadCallback => {
+    ): LongLivedConnectionResult => {
         let port: browser.Runtime.Port;
         let forceDisconnected = false;
 
+        const portId = `${page}_${nanoid()}`;
+
         const connect = (): void => {
-            port = browser.runtime.connect({ name: `${page}_${nanoid()}` });
+            port = browser.runtime.connect({ name: portId });
             port.postMessage({ type: MessageType.AddLongLivedConnection, data: { events } });
 
             port.onMessage.addListener((message) => {
@@ -199,7 +222,7 @@ class Messenger {
         window.addEventListener('beforeunload', onUnload);
         window.addEventListener('unload', onUnload);
 
-        return onUnload;
+        return { onUnload, portId };
     };
 
     /**
@@ -524,60 +547,29 @@ class Messenger {
     }
 
     /**
-     * Sends a message to the background page to check for extension updates initiated from popup.
-     */
-    async checkUpdatesFromPopupMV3(): Promise<ExtractMessageResponse<MessageType.CheckExtensionUpdateFromPopup>> {
-        if (!__IS_MV3__) {
-            logger.warn('[ext.Messenger.checkUpdatesFromPopupMV3]: extension update is not supported in MV2');
-            return;
-        }
-
-        return this.sendMessage(MessageType.CheckExtensionUpdateFromPopup);
-    }
-
-    /**
-     * Sends a message to the background page to update extension initiated from popup.
-     */
-    async updateExtensionFromPopupMV3(): Promise<ExtractMessageResponse<MessageType.UpdateExtensionFromPopup>> {
-        if (!__IS_MV3__) {
-            logger.warn('[ext.Messenger.updateExtensionFromPopupMV3]: extension update is not supported in MV2');
-            return;
-        }
-
-        return this.sendMessage(MessageType.UpdateExtensionFromPopup);
-    }
-
-    /**
      * Sends a message to the background page to check for extension updates.
-     *
-     * @returns Promise that resolves with boolean - true if update is available, false otherwise.
      */
-    async checkUpdatesFromOptionsMV3(): Promise<ExtractMessageResponse<MessageType.CheckExtensionUpdateFromOptions>> {
+    async checkUpdatesMV3(): Promise<ExtractMessageResponse<MessageType.CheckExtensionUpdateMv3>> {
         if (!__IS_MV3__) {
-            logger.warn('[ext.Messenger.checkUpdatesFromOptionsMV3]: extension update is not supported in MV2');
-            return false;
-        }
-
-        return this.sendMessage(MessageType.CheckExtensionUpdateFromOptions);
-    }
-
-    /**
-     * Sends a message to the background page to update the extension from the options page.
-     *
-     * @returns Promise that resolves with boolean false if update failed,
-     * otherwise void because the extension reloads on success.
-     */
-    async updateExtensionFromOptionsMV3(): Promise<ExtractMessageResponse<MessageType.UpdateExtensionFromOptions>> {
-        if (!__IS_MV3__) {
-            logger.warn('[ext.Messenger.updateExtensionFromOptionsMV3]: extension update is not supported in MV2');
+            logger.warn('[ext.Messenger.checkUpdatesMV3]: extension update is not supported in MV2');
             return;
         }
 
-        try {
-            await this.sendMessage(MessageType.UpdateExtensionFromOptions);
-        } catch (error) {
-            logger.debug('[ext.Messenger.updateExtensionFromOptionsMV3]: failed to update extension: ', error);
+        return this.sendMessage(MessageType.CheckExtensionUpdateMv3);
+    }
+
+    /**
+     * Sends a message to the background page to update extension.
+     */
+    async updateExtensionMV3(
+        { from }: UpdateExtensionMessageMv3['data'],
+    ): Promise<ExtractMessageResponse<MessageType.UpdateExtensionMv3>> {
+        if (!__IS_MV3__) {
+            logger.warn('[ext.Messenger.updateExtensionMV3]: extension update is not supported in MV2');
+            return;
         }
+
+        return this.sendMessage(MessageType.UpdateExtensionMv3, { from });
     }
 
     /**
@@ -664,13 +656,13 @@ class Messenger {
     }
 
     /**
-     * Sends a message to the background page to check if the engine is started.
+     * Sends a message to the background page to check if the application is initialized.
      *
      * @returns Promise that resolves to a boolean value:
-     * true if the engine is started, false otherwise.
+     * true if the application is initialized, false otherwise.
      */
-    async getIsEngineStarted(): Promise<ExtractMessageResponse<MessageType.GetIsEngineStarted>> {
-        return this.sendMessage(MessageType.GetIsEngineStarted);
+    async getIsAppInitialized(): Promise<ExtractMessageResponse<MessageType.GetIsAppInitialized>> {
+        return this.sendMessage(MessageType.GetIsAppInitialized);
     }
 
     /**
@@ -1125,6 +1117,56 @@ class Messenger {
     ): Promise<ExtractMessageResponse<MessageType.OpenSafebrowsingTrusted>> {
         return this.sendMessage(MessageType.OpenSafebrowsingTrusted, { url });
     }
+
+    /**
+     * Sends a message to the background page to send a telemetry page view event.
+     *
+     * @param screenName Screen name of the page.
+     * @param pageId Page ID of the page.
+     *
+     * @returns Promise that resolves after the message is sent.
+     */
+    sendTelemetryPageViewEvent = async (
+        screenName: SendTelemetryPageViewEventMessage['data']['screenName'],
+        pageId: SendTelemetryPageViewEventMessage['data']['pageId'],
+    ): Promise<ExtractMessageResponse<MessageType.SendTelemetryPageViewEvent>> => {
+        return this.sendMessage(MessageType.SendTelemetryPageViewEvent, { screenName, pageId });
+    };
+
+    /**
+     * Sends a message to the background page to send a telemetry custom event.
+     *
+     * @param screenName Screen name of the page.
+     * @param eventName Name of the event.
+     *
+     * @returns Promise that resolves after the message is sent.
+     */
+    sendTelemetryCustomEvent = async (
+        screenName: SendTelemetryCustomEventMessage['data']['screenName'],
+        eventName: SendTelemetryCustomEventMessage['data']['eventName'],
+    ): Promise<ExtractMessageResponse<MessageType.SendTelemetryCustomEvent>> => {
+        return this.sendMessage(MessageType.SendTelemetryCustomEvent, { screenName, eventName });
+    };
+
+    /**
+     * Adds opened page to telemetry tracking.
+     *
+     * @returns Promise that resolves with the page ID.
+     */
+    addTelemetryOpenedPage = async (): Promise<string> => {
+        return this.sendMessage(MessageType.AddTelemetryOpenedPage);
+    };
+
+    /**
+     * Removes opened page from telemetry tracking.
+     *
+     * @param pageId Page ID to remove.
+     *
+     * @returns Promise that resolves after the message is sent.
+     */
+    removeTelemetryOpenedPage = async (pageId: string): Promise<void> => {
+        return this.sendMessage(MessageType.RemoveTelemetryOpenedPage, { pageId });
+    };
 }
 
 const messenger = new Messenger();

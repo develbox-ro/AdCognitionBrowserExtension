@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -25,16 +27,23 @@ import { translator } from '../../../../../../common/translators/translator';
 import { Icon } from '../../../../../common/components/ui/Icon';
 import { messenger } from '../../../../../services/messenger';
 import { popupStore } from '../../../../stores/PopupStore';
+import { ForwardFrom } from '../../../../../../common/forward';
+import { TelemetryEventName, TelemetryScreenName } from '../../../../../../background/services/telemetry/enums';
 
 const Mv3UpdateButton = observer(() => {
     const store = useContext(popupStore);
 
-    const { isExtensionUpdateAvailable } = store;
+    const { isExtensionUpdateAvailable, telemetryStore } = store;
 
     const handleCheckUpdatesClick = async () => {
         if (!__IS_MV3__) {
             throw new Error('Extension update is not supported in MV2');
         }
+
+        telemetryStore.sendCustomEvent(
+            TelemetryEventName.CheckUpdatesClick,
+            TelemetryScreenName.MainPage,
+        );
         await store.checkUpdatesMV3();
     };
 
@@ -42,21 +51,30 @@ const Mv3UpdateButton = observer(() => {
         e.preventDefault();
         const start = Date.now();
 
+        telemetryStore.sendCustomEvent(
+            TelemetryEventName.UpdateAvailableClick,
+            TelemetryScreenName.MainPage,
+        );
+
+        // TODO: We should rely on event for changing status instead of setting
+        // flags manually
         // reset update availability flag
         store.setIsExtensionUpdateAvailable(false);
-        store.setIsExtensionUpdating(true);
-        await messenger.updateExtensionFromPopupMV3();
+        store.setIsExtensionCheckingUpdateOrUpdating(true);
+        await messenger.updateExtensionMV3({
+            from: ForwardFrom.Popup,
+        });
 
         // Ensure minimum duration for smooth UI experience before extension reload
         await sleepIfNecessary(start, MIN_UPDATE_DISPLAY_DURATION_MS);
-        store.setIsExtensionUpdating(false);
+        store.setIsExtensionCheckingUpdateOrUpdating(false);
     };
 
     if (isExtensionUpdateAvailable) {
         return (
             <button
                 className="button popup-header__button"
-                disabled={store.isExtensionUpdating}
+                disabled={store.isExtensionCheckingUpdateOrUpdating}
                 type="button"
                 onClick={handleUpdateExtensionClick}
                 title={translator.getMessage('update_available_title')}
@@ -77,13 +95,13 @@ const Mv3UpdateButton = observer(() => {
                 className="sr-only"
                 aria-live="assertive"
                 tabIndex={-1}
-                aria-hidden={!store.isExtensionUpdating}
+                aria-hidden={!store.isExtensionCheckingUpdateOrUpdating}
             >
-                {store.isExtensionUpdating ? translator.getMessage('update_checking_in_progress') : ''}
+                {store.isExtensionCheckingUpdateOrUpdating ? translator.getMessage('update_checking_in_progress') : ''}
             </div>
             <button
                 className="button popup-header__button"
-                disabled={store.isExtensionUpdating}
+                disabled={store.isExtensionCheckingUpdateOrUpdating}
                 type="button"
                 onClick={handleCheckUpdatesClick}
                 title={translator.getMessage('update_check')}
@@ -91,7 +109,7 @@ const Mv3UpdateButton = observer(() => {
                 <Icon
                     id="#reload"
                     className="icon--24 icon--header"
-                    animationCondition={store.isExtensionUpdating}
+                    animationCondition={store.isExtensionCheckingUpdateOrUpdating}
                     animationClassName="icon--loading"
                     aria-hidden="true"
                 />

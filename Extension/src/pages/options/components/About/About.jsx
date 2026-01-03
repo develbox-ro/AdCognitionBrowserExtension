@@ -1,4 +1,6 @@
 /**
+ * Copyright (c) 2015-2025 Adguard Software Ltd.
+ *
  * @file
  * This file is part of AdGuard Browser Extension (https://github.com/AdguardTeam/AdguardBrowserExtension).
  *
@@ -19,6 +21,8 @@
 import React, { useContext } from 'react';
 import { observer } from 'mobx-react';
 
+import { useTelemetryPageViewEvent } from '../../../common/telemetry';
+import { TelemetryScreenName } from '../../../../background/services/telemetry/enums';
 import { rootStore } from '../../stores/RootStore';
 import {
     CHANGELOG_URL,
@@ -33,11 +37,13 @@ import { translator } from '../../../../common/translators/translator';
 import './about-page.pcss';
 
 const About = observer(() => {
-    const { settingsStore } = useContext(rootStore);
+    const { settingsStore, telemetryStore } = useContext(rootStore);
 
-    const { version, libVersions } = settingsStore;
+    useTelemetryPageViewEvent(telemetryStore, TelemetryScreenName.AboutScreen);
 
-    if (!version) {
+    const { appVersion, libVersions } = settingsStore;
+
+    if (!appVersion) {
         return null;
     }
 
@@ -56,7 +62,7 @@ const About = observer(() => {
                     {translator.getMessage('options_about_title')}
                 </div>
                 <div className="about__version">
-                    {`${translator.getMessage('options_about_version')} ${version}`}
+                    {`${translator.getMessage('options_about_version')} ${appVersion}`}
                     <p>
                         {`TSWebExtension v${libVersions.tswebextension}`}
                         <br />
